@@ -64,24 +64,64 @@ toolkit:
 
 
 inputs:
-  - example_step_input: Default Value - you can leave this empty if you want to
+  - firebase_token:
     opts:
-      title: "Example Step Input"
-      summary: Summary. No more than 2-3 sentences.
+      title: Firebase Token
+      summary: Firebase CI access token. You can create by `firebase login:ci` on your local.
       description: |
-        Description of this input.
+        You can create by `firebase login:ci` on your local.
 
-        Can be Markdown formatted text.
+        It is something in the form of `1/a1gqPSI3ryNcsDiZnCaHnY-hg9u9nJeosz3iNPe-S-RLdmqdypiJMOjoeOhOGsWK`
       is_expand: true
       is_required: true
-      value_options: []
-
-outputs:
-  - EXAMPLE_STEP_OUTPUT:
+      is_sensitive: true
+  - app_path: $BITRISE_APK_PATH
     opts:
-      title: "Example Step Output"
-      summary: Summary. No more than 2-3 sentences.
+      title: App file path
+      description: |-
+        Path to the App Bundle or APK file to deploy.
+      is_required: true
+  - app:
+    opts:
+      title: App ID
+      summary: Firebase App ID. You can create by `firebase login:ci` on your local.
       description: |
-        Description of this output.
+        Your app's Firebase App ID. You can find the App ID in the Firebase console, on the [General Settings page](https://console.firebase.google.com/project/_/settings/general/?authuser=1).
 
-        Can be Markdown formatted text.
+        It is something in the form of:
+        
+        `1:1234567890:android:0a1b2c3d4e5f67890`
+      is_expand: true
+      is_required: true
+  - release_notes:
+    opts:
+      title: Release Notes
+      description: |
+        Release notes for this build.
+      is_expand: true
+      is_required: false
+  - testers:
+    opts:
+      title: Testers
+      summary: Tester Accounts
+      description: |
+        The email addresses of the testers you want to invite.
+
+        You can specify the testers as a comma-separated list of email addresses:
+        
+        `ali@example.com, bri@example.com, cal@example.com`
+      is_expand: true
+      is_required: false
+  - groups:
+    opts:
+      title: Groups
+      summary: Test Groups
+      description: |
+        The tester groups you want to invite (refer to [Manage testers](https://firebase.google.com/docs/app-distribution/manage-testers?authuser=1)). 
+        Groups are specified using group aliases, which you can look up in the Firebase console.
+
+        You can specify the groups as a comma-separated list:
+
+        `qa-team, trusted-testers`
+      is_expand: true
+      is_required: false
