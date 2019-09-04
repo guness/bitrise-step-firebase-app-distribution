@@ -75,11 +75,15 @@ inputs:
       is_expand: true
       is_required: true
       is_sensitive: true
-  - app_path: $BITRISE_APK_PATH
+  - app_path:
     opts:
       title: App file path
       description: |-
-        Path to the App Bundle or APK file to deploy.
+        Path to the IPA or APK file to deploy.
+
+        Default values:
+        iOS: `$BITRISE_IPA_PATH`
+        Android: `$BITRISE_APK_PATH`
       is_required: true
   - app:
     opts:
