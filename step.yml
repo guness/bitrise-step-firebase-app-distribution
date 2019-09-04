@@ -88,7 +88,7 @@ inputs:
   - app:
     opts:
       title: App ID
-      summary: Firebase App ID. You can create by `firebase login:ci` on your local.
+      summary: Firebase App ID.
       description: |
         Your app's Firebase App ID. You can find the App ID in the Firebase console, on the [General Settings page](https://console.firebase.google.com/project/_/settings/general/?authuser=1).
 
