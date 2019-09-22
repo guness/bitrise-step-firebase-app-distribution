@@ -16,31 +16,14 @@ description: |
 website: https://github.com/guness/bitrise-step-firebase-app-distribution
 source_code_url: https://github.com/guness/bitrise-step-firebase-app-distribution
 support_url: https://github.com/guness/bitrise-step-firebase-app-distribution
-host_os_tags:
-  - osx-10.10
-  - ubuntu-16.04
 
-# If this step should be available only for certain project types
-# just uncomment this `project_type_tags` section and include all the
-# project types supported by the step. If the step can be used for all
-# project types then you can just remove this section.
-# If no `project_type_tags` specified (or specified as an empty array)
-# that means the step can be used for any project type.
-# You can find more information about project type tags in the Step Development Guideline:
-# https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md
-#
-# project_type_tags:
-#   - ios
-#   - macos
-#   - android
-#   - xamarin
-#   - react-native
-#   - cordova
-#   - ionic
-
-# Type tags are used for categorizing steps, for easier step discovery in Step Libraries.
-# You can find more information about type tags in the Step Development Guideline:
-# https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md
+project_type_tags:
+  - ios
+  - android
+  - xamarin
+  - react-native
+  - cordova
+  - ionic
 type_tags:
   - deploy
 
@@ -49,37 +32,25 @@ is_always_run: false
 is_skippable: false
 run_if: ""
 
-deps:
-  brew:
-  - name: git
-  - name: wget
-  apt_get:
-  - name: git
-  - name: wget
-
-
 toolkit:
   bash:
     entry_file: step.sh
-
 
 inputs:
   - firebase_token:
     opts:
       title: Firebase Token
-      summary: Firebase CI access token. You can create by `firebase login:ci` on your local.
       description: |
-        You can create by `firebase login:ci` on your local.
+        Firebase CI access token. You can create by `firebase login:ci` on your local.
 
         It is something in the form of `1/a1gqPSI3ryNcsDiZnCaHnY-hg9u9nJeosz3iNPe-S-RLdmqdypiJMOjoeOhOGsWK`
-      is_expand: true
       is_required: true
       is_sensitive: true
-  - app_path:
+  - app_path: "$BITRISE_IPA_PATH|$BITRISE_APK_PATH"
     opts:
-      title: App file path
+      title: App Path
       description: |-
-        Path to the IPA or APK file to deploy.
+        Path for IPA or APK file to deploy.
 
         Default values:
         iOS: `$BITRISE_IPA_PATH`
@@ -87,45 +58,61 @@ inputs:
       is_required: true
   - app:
     opts:
-      title: App ID
-      summary: Firebase App ID.
+      title: Firebase App ID
+      summary:
       description: |
-        Your app's Firebase App ID. You can find the App ID in the Firebase console, on the [General Settings page](https://console.firebase.google.com/project/_/settings/general/?authuser=1).
+        You can find the App ID in the Firebase console, on the [General Settings page](https://console.firebase.google.com/project/_/settings/general/).
 
         It is something in the form of:
-        
+
         `1:1234567890:android:0a1b2c3d4e5f67890`
-      is_expand: true
       is_required: true
   - release_notes:
     opts:
       title: Release Notes
       description: |
         Release notes for this build.
-      is_expand: true
+      is_required: false
+  - release_notes_file:
+    opts:
+      title: Release Notes File
+      description: |
+        Plain text file containing release notes for this build.
       is_required: false
   - testers:
     opts:
       title: Testers
-      summary: Tester Accounts
+      summary:
       description: |
         The email addresses of the testers you want to invite.
 
         You can specify the testers as a comma-separated list of email addresses:
-        
+
         `ali@example.com, bri@example.com, cal@example.com`
-      is_expand: true
+      is_required: false
+  - testers_file:
+    opts:
+      title: Testers File
+      summary:
+      description: |
+        Plain text file containing a comma-separated list of email addresses.
       is_required: false
   - groups:
     opts:
-      title: Groups
-      summary: Test Groups
+      title: Test Groups
+      summary:
       description: |
-        The tester groups you want to invite (refer to [Manage testers](https://firebase.google.com/docs/app-distribution/manage-testers?authuser=1)). 
+        The tester groups you want to invite (refer to [Manage testers](https://firebase.google.com/docs/app-distribution/manage-testers)).
         Groups are specified using group aliases, which you can look up in the Firebase console.
 
         You can specify the groups as a comma-separated list:
 
         `qa-team, trusted-testers`
-      is_expand: true
+      is_required: false
+  - groups_file:
+    opts:
+      title: Test Groups File
+      summary:
+      description: |
+        Plain text file containing a comma-separated list of group names.
       is_required: false
