@@ -45,7 +45,6 @@ workflows:
         run_if: "true"
         inputs:
         - app: $FIREBASE_APP_ID
-        - groups: dev
         - app_path: $BITRISE_APK_PATH
         - firebase_token: $FIREBASE_CI_TOKEN
   share-this-step:
