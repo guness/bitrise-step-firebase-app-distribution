@@ -3,7 +3,6 @@ set -e
 
 THIS_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-
 #=======================================
 # Functions
 #=======================================
@@ -121,8 +120,14 @@ if [ ! -z "${groups_file}" ] && [ ! -f "${groups_file}" ] ; then
 fi
 
 # Install Firebase
-echo_info "Installing Firebase CLI"
-npm install -g firebase-tools
+firebaseTools="$(npm list -g --depth=0 | grep firebase-tools)"
+if [ -z "${firebaseTools}" ] ; then
+    echo_info "Installing Firebase CLI"
+    npm install -g firebase-tools
+else
+    echo_info "Using existing Firebase CLI"
+    echo_info "$firebaseTools"
+fi
 
 # Enable Firebase App Distribution
 firebase --open-sesame appdistribution
