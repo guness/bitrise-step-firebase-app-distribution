@@ -130,7 +130,7 @@ fi
 # fi
 
 # Enable Firebase App Distribution
-firebase --open-sesame appdistribution
+# firebase --open-sesame appdistribution
 
 # Export Firebase Token
 export FIREBASE_TOKEN="${firebase_token}"
