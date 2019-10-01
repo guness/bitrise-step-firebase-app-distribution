@@ -1,4 +1,4 @@
-# Firebase App Distribution
+# Firebase App Distribution [![Build Status](https://app.bitrise.io/app/d062ee999a22d283/status.svg?token=gHDEe1bUbFLZeK0-6zCXiA)](https://app.bitrise.io/app/d062ee999a22d283)
 
 Upload your app binaries to Firebase and sends email to your testers.
 
