@@ -12,7 +12,7 @@ title: |-
 summary: |
   [Beta]Distributes your builds via Firebase App Distribution
 description: |
-  [Beta]Upload your app binaries to Firebase and sends email to your testers.
+  [Beta]Uploads your app binaries to Firebase and sends email to your testers.
 website: https://github.com/guness/bitrise-step-firebase-app-distribution
 source_code_url: https://github.com/guness/bitrise-step-firebase-app-distribution
 support_url: https://github.com/guness/bitrise-step-firebase-app-distribution
@@ -41,7 +41,7 @@ inputs:
     opts:
       title: Firebase Token
       description: |
-        Firebase CI access token. You can create by `firebase login:ci` on your local machine.
+        Firebase CI access token. You can create it by `firebase login:ci` on your local machine.
 
         It is something in the form of `1/a1gqPSI3ryNcsDiZnCaHnY-hg9u9nJeosz3iNPe-S-RLdmqdypiJMOjoeOhOGsWK`
       is_required: true
@@ -50,7 +50,7 @@ inputs:
     opts:
       title: App Path
       description: |-
-        Path for IPA or APK file to deploy.
+        Path of IPA or APK file to deploy.
 
         Default values:
         iOS: `$BITRISE_IPA_PATH`
