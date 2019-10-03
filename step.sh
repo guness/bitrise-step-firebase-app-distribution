@@ -85,11 +85,9 @@ echo_details "* firebase_token: ***"
 echo_details "* app_path: $app_path"
 echo_details "* app: $app"
 echo_details "* release_notes: $release_notes"
-echo_details "* release_notes_file: $release_notes_file"
 echo_details "* testers: $testers"
-echo_details "* testers_file: $testers_file"
 echo_details "* groups: $groups"
-echo_details "* groups_file: $groups_file"
+echo_details "* flags: $flags"
 
 echo
 
@@ -105,18 +103,6 @@ fi
 
 if [ -z "${app}" ] ; then
     echo_fail "Firebase App ID is not defined"
-fi
-
-if [ ! -z "${release_notes_file}" ] && [ ! -f "${release_notes_file}" ] ; then
-    echo_warn "Path for Release Notes specified, but file does not exist at path: ${release_notes_file}"
-fi
-
-if [ ! -z "${testers_file}" ] && [ ! -f "${testers_file}" ] ; then
-    echo_warn "Path for Testers specified, but file does not exist at path: ${testers_file}"
-fi
-
-if [ ! -z "${groups_file}" ] && [ ! -f "${groups_file}" ] ; then
-    echo_warn "Path for Groups specified, but file does not exist at path: ${groups_file}"
 fi
 
 # # Install Firebase
@@ -136,24 +122,16 @@ if [ -n "${release_notes}" ] ; then
     submit_cmd="$submit_cmd --release-notes \"${release_notes}\""
 fi
 
-if [ -n "${release_notes_file}" ] && [ -f "${release_notes_file}" ] ; then
-    submit_cmd="$submit_cmd --release-notes-file \"${release_notes_file}\""
-fi
-
 if [ -n "${testers}" ] ; then
     submit_cmd="$submit_cmd --testers \"${testers}\""
-fi
-
-if [ -n "${testers_file}" ] && [ -f "${testers_file}" ] ; then
-    submit_cmd="$submit_cmd --testers-file \"${testers_file}\""
 fi
 
 if [ -n "${groups}" ] ; then
     submit_cmd="$submit_cmd --groups \"${groups}\""
 fi
 
-if [ -n "${groups_file}" ] && [ -f "${groups_file}" ] ; then
-    submit_cmd="$submit_cmd --groups-file \"${groups_file}\""
+if [ -n "${flags}" ] ; then
+    submit_cmd="$submit_cmd \"${flags}\""
 fi
 
 echo_details "$submit_cmd"
