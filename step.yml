@@ -8,11 +8,11 @@
 # - Bitrise CLI guides: http://devcenter.bitrise.io/bitrise-cli/
 
 title: |-
-  [Beta]Firebase App Distribution
+  [BETA] Firebase App Distribution
 summary: |
-  [Beta]Distributes your builds via Firebase App Distribution
+  [BETA] Distributes your builds via Firebase App Distribution
 description: |
-  [Beta]Uploads your app binaries to Firebase and sends email to your testers.
+  [BETA] Uploads your app binaries to Firebase and sends email to your testers.
 website: https://github.com/guness/bitrise-step-firebase-app-distribution
 source_code_url: https://github.com/guness/bitrise-step-firebase-app-distribution
 support_url: https://github.com/guness/bitrise-step-firebase-app-distribution
@@ -73,12 +73,6 @@ inputs:
       description: |
         Release notes for this build.
       is_required: false
-  - release_notes_file:
-    opts:
-      title: Release Notes File
-      description: |
-        Plain text file containing release notes for this build.
-      is_required: false
   - testers:
     opts:
       title: Testers
@@ -89,13 +83,6 @@ inputs:
         You can specify the testers as a comma-separated list of email addresses:
 
         `ali@example.com, bri@example.com, cal@example.com`
-      is_required: false
-  - testers_file:
-    opts:
-      title: Testers File
-      summary:
-      description: |
-        Plain text file containing a comma-separated list of email addresses.
       is_required: false
   - groups:
     opts:
@@ -109,10 +96,11 @@ inputs:
 
         `qa-team, trusted-testers`
       is_required: false
-  - groups_file:
+  - flags:
     opts:
-      title: Test Groups File
+      title: Additional Command Flags
       summary:
       description: |
-        Plain text file containing a comma-separated list of group names.
+        Additional flags to be appended to firebase command.
+        ie. you can specify file inputs for groups, testers, and release notes.
       is_required: false
