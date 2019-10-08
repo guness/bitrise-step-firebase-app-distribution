@@ -43,7 +43,7 @@ inputs:
       description: |
         Firebase CI access token. You can create it by `firebase login:ci` on your local machine.
 
-        It is something in the form of `1/a1gqPSI3ryNcsDiZnCaHnY-hg9u9nJeosz3iNPe-S-RLdmqdypiJMOjoeOhOGsWK`
+        It is something in the form of `1/a1gqPSI3r-RLgCQO47pJW7WdmqdypiJMO`
       is_required: true
       is_sensitive: true
   - app_path: "$BITRISE_IPA_PATH|$BITRISE_APK_PATH"
