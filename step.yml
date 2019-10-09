@@ -15,7 +15,7 @@ description: |
   [BETA] Uploads your app binaries to Firebase and sends email to your testers.
 website: https://github.com/guness/bitrise-step-firebase-app-distribution
 source_code_url: https://github.com/guness/bitrise-step-firebase-app-distribution
-support_url: https://github.com/guness/bitrise-step-firebase-app-distribution
+support_url: https://github.com/guness/bitrise-step-firebase-app-distribution/issues
 
 project_type_tags:
   - ios
@@ -24,6 +24,7 @@ project_type_tags:
   - react-native
   - cordova
   - ionic
+  - flutter
 type_tags:
   - deploy
 

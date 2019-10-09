@@ -93,7 +93,26 @@ echo
 
 if [ -z "${app_path}" ] ; then
     echo_fail "App path for APK or IPA is not defined"
-elif [ ! -f "${app_path}" ] ; then
+fi
+
+case "${app_path}" in
+   \|*)
+       echo_warn "App path starts with | . Manually fixing path: ${app_path}"
+       app_path="${app_path:1}"
+       ;;
+    *\|)
+       echo_warn "App path ends with | . Manually fixing path: ${app_path}"
+       app_path="${app_path%?}"
+       ;;
+    *\|*)
+       echo_fail "App path contains | . You need to choose one build path: ${app_path}"
+       ;;
+    *)
+       echo_info "App path contains one file :+1:"
+       ;;
+esac
+
+if [ ! -f "${app_path}" ] ; then
     echo_fail "App path defined but the file does not exist at path: ${app_path}"
 fi
 
