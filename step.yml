@@ -59,7 +59,6 @@ inputs:
   - app:
     opts:
       title: Firebase App ID
-      summary:
       description: |
         You can find the App ID in the Firebase console, on the [General Settings page](https://console.firebase.google.com/project/_/settings/general/).
 
@@ -76,7 +75,6 @@ inputs:
   - testers:
     opts:
       title: Testers
-      summary:
       description: |
         The email addresses of the testers you want to invite.
 
@@ -87,7 +85,6 @@ inputs:
   - groups:
     opts:
       title: Test Groups
-      summary:
       description: |
         The tester groups you want to invite (refer to [Manage testers](https://firebase.google.com/docs/app-distribution/manage-testers)).
         Groups are specified using group aliases, which you can look up in the Firebase console.
@@ -99,8 +96,7 @@ inputs:
   - flags:
     opts:
       title: Additional Command Flags
-      summary:
       description: |
-        Additional flags to be appended to firebase command.
+        Additional flags to be appended to Firebase command.
         ie. you can specify file inputs for groups, testers, and release notes.
       is_required: false
