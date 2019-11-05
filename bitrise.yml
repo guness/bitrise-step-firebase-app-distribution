@@ -88,6 +88,11 @@ workflows:
         - app_path: $BITRISE_IPA_PATH
         - firebase_token: $FIREBASE_CI_TOKEN
         - is_debug: "true"
+  deploy-bitrise:
+    steps:
+    - deploy-to-bitrise-io:
+        inputs:
+        - notify_user_groups: none
   share-this-step:
     description: |-
       If this is the first time you try to share a Step you should
@@ -131,6 +136,8 @@ workflows:
     - audit-this-step
     - test-ios
     - test-android
+    after_run:
+    - deploy-bitrise
   test-ios:
     before_run:
     - build-ios

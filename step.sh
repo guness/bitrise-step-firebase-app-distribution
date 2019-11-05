@@ -81,7 +81,7 @@ function validate_required_input_with_options {
 #
 # Validate parameters
 echo_info "Configs:"
-echo_details "* firebase_token: ***"
+echo_details "* firebase_token: $firebase_token"
 echo_details "* service_credentials_file: $service_credentials_file"
 echo_details "* app_path: $app_path"
 echo_details "* app: $app"
