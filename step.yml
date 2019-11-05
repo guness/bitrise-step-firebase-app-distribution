@@ -52,7 +52,6 @@ inputs:
       description: |
         The path to your [service account](https://firebase.google.com/docs/app-distribution/android/distribute-gradle#authenticate_using_a_service_account) private key JSON file.
         Required only if you use service account authentication.
-      is_sensitive: true
   - app_path: "$BITRISE_IPA_PATH|$BITRISE_APK_PATH"
     opts:
       title: App Path
