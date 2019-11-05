@@ -77,6 +77,7 @@ workflows:
         - app: $FIREBASE_APP_ID_ANDROID
         - app_path: $BITRISE_APK_PATH
         - firebase_token: $FIREBASE_CI_TOKEN
+        - is_debug: "true"
   deploy-ios:
     steps:
     - path::./:
@@ -86,6 +87,7 @@ workflows:
         - app: $FIREBASE_APP_ID_IOS
         - app_path: $BITRISE_IPA_PATH
         - firebase_token: $FIREBASE_CI_TOKEN
+        - is_debug: "true"
   share-this-step:
     description: |-
       If this is the first time you try to share a Step you should
