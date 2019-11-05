@@ -110,7 +110,7 @@ case "${app_path}" in
        echo_fail "App path contains | . You need to choose one build path: ${app_path}"
        ;;
     *)
-       echo_info "App path contains one file :+1:"
+       echo_info "App path contains one file 👍"
        ;;
 esac
 
@@ -121,7 +121,7 @@ fi
 if [ -z "${firebase_token}" ] ; then
     if [ -z "${service_credentials_file}" ]; then
         echo_fail "No authentication input was defined, please fill one of Firebase Token or Service Credentials Field."
-    elif [ -f "${service_credentials_file}" ]; then
+    elif [ ! -f "${service_credentials_file}" ]; then
         echo_fail "Service Credentials File defined but does not exist at path: ${service_credentials_file}"
     fi
 fi
