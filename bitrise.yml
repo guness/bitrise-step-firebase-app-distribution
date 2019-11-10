@@ -6,7 +6,7 @@ app:
   - SAMPLE_APP_ANDROID: https://github.com/bitrise-io/sample-apps-android-sdk22.git
   - SAMPLE_APP_IOS: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
   - BITRISE_STEP_ID: firebase-app-distribution
-  - BITRISE_STEP_VERSION: 0.3.0
+  - BITRISE_STEP_VERSION: 0.4.0
   - BITRISE_STEP_GIT_CLONE_URL: https://github.com/guness/bitrise-step-firebase-app-distribution.git
   - MY_STEPLIB_REPO_FORK_GIT_URL: https://github.com/guness/bitrise-steplib.git
   - FIREBASE_CI_TOKEN: $FIREBASE_CI_TOKEN
@@ -77,6 +77,7 @@ workflows:
         - app: $FIREBASE_APP_ID_ANDROID
         - app_path: $BITRISE_APK_PATH
         - firebase_token: $FIREBASE_CI_TOKEN
+        - is_debug: "true"
   deploy-ios:
     steps:
     - path::./:
@@ -86,6 +87,12 @@ workflows:
         - app: $FIREBASE_APP_ID_IOS
         - app_path: $BITRISE_IPA_PATH
         - firebase_token: $FIREBASE_CI_TOKEN
+        - is_debug: "true"
+  deploy-bitrise:
+    steps:
+    - deploy-to-bitrise-io:
+        inputs:
+        - notify_user_groups: none
   share-this-step:
     description: |-
       If this is the first time you try to share a Step you should
@@ -129,6 +136,8 @@ workflows:
     - audit-this-step
     - test-ios
     - test-android
+    after_run:
+    - deploy-bitrise
   test-ios:
     before_run:
     - build-ios

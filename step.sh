@@ -81,13 +81,15 @@ function validate_required_input_with_options {
 #
 # Validate parameters
 echo_info "Configs:"
-echo_details "* firebase_token: ***"
+echo_details "* firebase_token: $firebase_token"
+echo_details "* service_credentials_file: $service_credentials_file"
 echo_details "* app_path: $app_path"
 echo_details "* app: $app"
 echo_details "* release_notes: $release_notes"
 echo_details "* testers: $testers"
 echo_details "* groups: $groups"
 echo_details "* flags: $flags"
+echo_details "* is_debug: $is_debug"
 
 echo
 
@@ -108,7 +110,7 @@ case "${app_path}" in
        echo_fail "App path contains | . You need to choose one build path: ${app_path}"
        ;;
     *)
-       echo_info "App path contains one file :+1:"
+       echo_info "App path contains one file 👍"
        ;;
 esac
 
@@ -117,7 +119,15 @@ if [ ! -f "${app_path}" ] ; then
 fi
 
 if [ -z "${firebase_token}" ] ; then
-    echo_fail "Firebase Token is not defined"
+    if [ -z "${service_credentials_file}" ]; then
+        echo_fail "No authentication input was defined, please fill one of Firebase Token or Service Credentials Field."
+    elif [ ! -f "${service_credentials_file}" ]; then
+        echo_fail "Service Credentials File defined but does not exist at path: ${service_credentials_file}"
+    fi
+fi
+
+if [ -n "${firebase_token}" ]  && [ -n "${service_credentials_file}" ]; then
+    echo_info "Both authentication inputs are defined: Firebase Token and Service Credentials Field, one is enough."
 fi
 
 if [ -z "${app}" ] ; then
@@ -128,7 +138,14 @@ fi
 npm install -g firebase-tools
 
 # Export Firebase Token
-export FIREBASE_TOKEN="${firebase_token}"
+if [ -n "${firebase_token}" ] ; then
+    export FIREBASE_TOKEN="${firebase_token}"
+fi
+
+# Export Service Credentials File
+if [ -n "${service_credentials_file}" ] ; then
+    export GOOGLE_APPLICATION_CREDENTIALS="${service_credentials_file}"
+fi
 
 # Deploy
 echo_info "Deploying build to Firebase"
@@ -151,6 +168,10 @@ fi
 
 if [ -n "${flags}" ] ; then
     submit_cmd="$submit_cmd \"${flags}\""
+fi
+
+if [ "${is_debug}" = true ] ; then
+    submit_cmd="$submit_cmd --debug"
 fi
 
 echo_details "$submit_cmd"
