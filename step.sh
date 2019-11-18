@@ -135,7 +135,7 @@ if [ -z "${app}" ] ; then
 fi
 
 # # Install Firebase
-npm install -g firebase-tools
+npm install firebase-tools
 
 # Export Firebase Token
 if [ -n "${firebase_token}" ] ; then
