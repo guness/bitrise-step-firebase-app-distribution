@@ -134,8 +134,8 @@ if [ -z "${app}" ] ; then
     echo_fail "Firebase App ID is not defined"
 fi
 
-# # Install Firebase
-npm install -g firebase-tools
+# Install Firebase
+curl -sL firebase.tools | bash
 
 # Export Firebase Token
 if [ -n "${firebase_token}" ] ; then
