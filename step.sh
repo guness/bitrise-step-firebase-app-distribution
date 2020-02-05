@@ -86,6 +86,7 @@ echo_details "* service_credentials_file: $service_credentials_file"
 echo_details "* app_path: $app_path"
 echo_details "* app: $app"
 echo_details "* release_notes: $release_notes"
+echo_details "* release_notes_file: $release_notes_file"
 echo_details "* testers: $testers"
 echo_details "* groups: $groups"
 echo_details "* flags: $flags"
@@ -156,6 +157,10 @@ submit_cmd="$submit_cmd --app \"${app}\""
 ## Optional params
 if [ -n "${release_notes}" ] ; then
     submit_cmd="$submit_cmd --release-notes \"${release_notes}\""
+fi
+
+if [ -n "${release_notes_file}" ] ; then
+    submit_cmd="$submit_cmd --release-notes-file \"${release_notes_file}\""
 fi
 
 if [ -n "${testers}" ] ; then
