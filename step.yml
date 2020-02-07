@@ -82,7 +82,7 @@ inputs:
     opts:
       title: Release Notes File
       description: |
-        File that contains release notes for this build.
+        Text file containing release notes for this build.
       is_required: false
   - testers:
     opts:
@@ -110,7 +110,7 @@ inputs:
       title: Additional Command Flags
       description: |
         Additional flags to be appended to Firebase command.
-        ie. you can specify file inputs for groups, testers, and release notes.
+        ie. you can specify file inputs for groups, and testers.
       is_required: false
   - is_debug: "false"
     opts: 

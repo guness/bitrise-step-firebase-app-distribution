@@ -135,6 +135,10 @@ if [ -z "${app}" ] ; then
     echo_fail "Firebase App ID is not defined"
 fi
 
+if [ ! -z "${release_notes_file}" ] && [ ! -f "${release_notes_file}" ] ; then
+    echo_warn "Path for Release Notes specified, but file does not exist at path: ${release_notes_file}"
+fi
+
 # Install Firebase
 curl -sL firebase.tools | bash
 
@@ -159,7 +163,7 @@ if [ -n "${release_notes}" ] ; then
     submit_cmd="$submit_cmd --release-notes \"${release_notes}\""
 fi
 
-if [ -n "${release_notes_file}" ] ; then
+if [ -n "${release_notes_file}" ] && [ -f "${release_notes_file}" ] ; then
     submit_cmd="$submit_cmd --release-notes-file \"${release_notes_file}\""
 fi
 
