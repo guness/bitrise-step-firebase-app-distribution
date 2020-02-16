@@ -155,28 +155,28 @@ fi
 # Deploy
 echo_info "Deploying build to Firebase"
 
-submit_cmd="firebase appdistribution:distribute \"${app_path}\""
-submit_cmd="$submit_cmd --app \"${app}\""
+submit_cmd="firebase appdistribution:distribute '${app_path}'"
+submit_cmd="$submit_cmd --app '${app}'"
 
 ## Optional params
 if [ -n "${release_notes}" ] ; then
-    submit_cmd="$submit_cmd --release-notes \"${release_notes}\""
+    submit_cmd="$submit_cmd --release-notes '${release_notes}'"
 fi
 
 if [ -n "${release_notes_file}" ] && [ -f "${release_notes_file}" ] ; then
-    submit_cmd="$submit_cmd --release-notes-file \"${release_notes_file}\""
+    submit_cmd="$submit_cmd --release-notes-file '${release_notes_file}'"
 fi
 
 if [ -n "${testers}" ] ; then
-    submit_cmd="$submit_cmd --testers \"${testers}\""
+    submit_cmd="$submit_cmd --testers '${testers}'"
 fi
 
 if [ -n "${groups}" ] ; then
-    submit_cmd="$submit_cmd --groups \"${groups}\""
+    submit_cmd="$submit_cmd --groups '${groups}'"
 fi
 
 if [ -n "${flags}" ] ; then
-    submit_cmd="$submit_cmd \"${flags}\""
+    submit_cmd="$submit_cmd '${flags}'"
 fi
 
 if [ "${is_debug}" = true ] ; then

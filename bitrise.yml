@@ -78,6 +78,7 @@ workflows:
         - app_path: $BITRISE_APK_PATH
         - firebase_token: $FIREBASE_CI_TOKEN
         - is_debug: "true"
+        - release_notes: "Some Test #2 'Over' here"
   deploy-ios:
     steps:
     - path::./:
@@ -88,6 +89,7 @@ workflows:
         - app_path: $BITRISE_IPA_PATH
         - firebase_token: $FIREBASE_CI_TOKEN
         - is_debug: "true"
+        - release_notes: 'Some Test #1 "Over" here'
   deploy-bitrise:
     steps:
     - deploy-to-bitrise-io:
