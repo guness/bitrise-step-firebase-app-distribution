@@ -91,6 +91,7 @@ echo_details "* testers: $testers"
 echo_details "* groups: $groups"
 echo_details "* flags: $flags"
 echo_details "* is_debug: $is_debug"
+echo_details "* upgrade_firebase_tools: $upgrade_firebase_tools"
 
 echo
 
@@ -140,7 +141,11 @@ if [ ! -z "${release_notes_file}" ] && [ ! -f "${release_notes_file}" ] ; then
 fi
 
 # Install Firebase
-curl -sL firebase.tools | bash
+if [ "${upgrade_firebase_tools}" = true ] ; then
+    curl -sL firebase.tools | upgrade=true bash
+else
+    curl -sL firebase.tools | bash
+fi
 
 # Export Firebase Token
 if [ -n "${firebase_token}" ] ; then
