@@ -112,13 +112,22 @@ inputs:
         Additional flags to be appended to Firebase command.
         ie. you can specify file inputs for groups, and testers.
       is_required: false
+  - upgrade_firebase_tools: "false"
+    opts:
+      title: "Enable Firebase Tools Upgrade"
+      summary: Firebase tools will be upgraded if enabled.
+      description: Firebase tools will be upgraded if enabled.
+      is_required: true
+      value_options:
+        - "false"
+        - "true"
   - is_debug: "false"
-    opts: 
+    opts:
       category: Debug
       title: "Enable Debug Mode"
       summary: The step will print more verbose logs if enabled.
       description: The step will print more verbose logs if enabled.
       is_required: true
       value_options:
-      - "false"
-      - "true"
+        - "false"
+        - "true"
