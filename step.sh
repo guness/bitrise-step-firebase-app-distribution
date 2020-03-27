@@ -161,7 +161,7 @@ fi
 echo_info "Deploying build to Firebase"
 
 submit_cmd="firebase appdistribution:distribute '${app_path}'"
-submit_cmd="$submit_cmd --app '${app}'"
+submit_cmd="$submit_cmd --app \"${app}\""
 
 ## Optional params
 if [ -n "${release_notes}" ] ; then
