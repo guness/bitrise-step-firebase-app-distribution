@@ -165,7 +165,7 @@ submit_cmd="$submit_cmd --app '${app}'"
 
 ## Optional params
 if [ -n "${release_notes}" ] ; then
-    submit_cmd="$submit_cmd --release-notes '${release_notes}'"
+    submit_cmd="$submit_cmd --release-notes ${release_notes}"
 fi
 
 if [ -n "${release_notes_file}" ] && [ -f "${release_notes_file}" ] ; then
@@ -190,7 +190,8 @@ fi
 
 echo_details "$submit_cmd"
 echo
-eval "$submit_cmd"
+
+${submit_cmd}
 
 if [ $? -eq 0 ] ; then
     echo_done "Success"
