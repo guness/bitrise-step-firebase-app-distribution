@@ -2,3 +2,4 @@
 .gows.user.yml
 _tmp
 .DS_Store
+firebase-debug.log

@@ -6,7 +6,7 @@ app:
   - SAMPLE_APP_ANDROID: https://github.com/bitrise-io/sample-apps-android-sdk22.git
   - SAMPLE_APP_IOS: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
   - BITRISE_STEP_ID: firebase-app-distribution
-  - BITRISE_STEP_VERSION: 0.6.0
+  - BITRISE_STEP_VERSION: 0.7.0
   - BITRISE_STEP_GIT_CLONE_URL: https://github.com/guness/bitrise-step-firebase-app-distribution.git
   - MY_STEPLIB_REPO_FORK_GIT_URL: https://github.com/guness/bitrise-steplib.git
   - FIREBASE_CI_TOKEN: $FIREBASE_CI_TOKEN
@@ -78,29 +78,7 @@ workflows:
         - app_path: $BITRISE_APK_PATH
         - firebase_token: $FIREBASE_CI_TOKEN
         - is_debug: "true"
-        - release_notes: "Some Test #2 'Over' here"
-  deploy-android-2:
-    steps:
-    - path::./:
-        title: Step Test
-        run_if: "true"
-        inputs:
-        - app: $FIREBASE_APP_ID_ANDROID
-        - app_path: $BITRISE_APK_PATH
-        - firebase_token: $FIREBASE_CI_TOKEN
-        - is_debug: "true"
-        - release_notes: "Sinan's Test #3 here"
-  deploy-android-3:
-    steps:
-    - path::./:
-        title: Step Test
-        run_if: "true"
-        inputs:
-        - app: $FIREBASE_APP_ID_ANDROID
-        - app_path: $BITRISE_APK_PATH
-        - firebase_token: $FIREBASE_CI_TOKEN
-        - is_debug: "true"
-        - release_notes: 'Sinan:[ " ] Test #4 here'
+        - release_notes: "Some Test  '     #2  here"
   deploy-ios:
     steps:
     - path::./:
@@ -170,5 +148,3 @@ workflows:
     before_run:
     - build-android
     - deploy-android
-    - deploy-android-2
-    - deploy-android-3
