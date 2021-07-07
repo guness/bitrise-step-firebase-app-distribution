@@ -52,15 +52,15 @@ inputs:
       description: |
         The path or HTTP URL to your [service account](https://firebase.google.com/docs/app-distribution/android/distribute-gradle#authenticate_using_a_service_account) private key JSON file.
         Required only if you use service account authentication.
-  - app_path: "$BITRISE_IPA_PATH|$BITRISE_APK_PATH"
+  - app_path: "$BITRISE_IPA_PATH|$BITRISE_APK_PATH|$BITRISE_AAB_PATH"
     opts:
       title: App Path
       description: |-
-        Path of IPA or APK file to deploy.
+        Path of IPA, APK or AAB file to deploy.
 
         Default values:
         iOS: `$BITRISE_IPA_PATH`
-        Android: `$BITRISE_APK_PATH`
+        Android: `$BITRISE_APK_PATH|$BITRISE_AAB_PATH`
       is_required: true
   - app:
     opts:

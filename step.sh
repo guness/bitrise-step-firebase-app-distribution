@@ -102,11 +102,19 @@ echo_details "* upgrade_firebase_tools: $upgrade_firebase_tools"
 echo
 
 if [ -z "${app_path}" ] ; then
-    echo_fail "App path for APK or IPA is not defined"
+    echo_fail "App path for APK, AAB or IPA is not defined"
 fi
 
 case "${app_path}" in
-   \|*)
+    *\|\|*)
+       echo_fail "App path contains || . You need to choose one build path: ${app_path}"
+       ;;
+    \|*\|)
+       echo_warn "App path starts and ends with | . Manually fixing path: ${app_path}"
+       app_path="${app_path:1}"
+       app_path="${app_path%?}"
+       ;;
+    \|*)
        echo_warn "App path starts with | . Manually fixing path: ${app_path}"
        app_path="${app_path:1}"
        ;;
@@ -118,7 +126,7 @@ case "${app_path}" in
        echo_fail "App path contains | . You need to choose one build path: ${app_path}"
        ;;
     *)
-       echo_info "App path contains one file 👍"
+       echo_info "App path contains a file, great!! 👍"
        ;;
 esac
 
