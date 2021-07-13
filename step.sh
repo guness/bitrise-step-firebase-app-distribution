@@ -106,24 +106,21 @@ if [ -z "${app_path}" ] ; then
 fi
 
 case "${app_path}" in
-    *\|\|*)
-       echo_fail "App path contains || . You need to choose one build path: ${app_path}"
+    \|\|*)
+       echo_warn "App path starts with || . Manually fixing path: ${app_path}"
+       app_path="${app_path:2}"
+       ;;
+    *\|\|)
+       echo_warn "App path ends with || . Manually fixing path: ${app_path}"
+       app_path="${app_path%??}"
        ;;
     \|*\|)
        echo_warn "App path starts and ends with | . Manually fixing path: ${app_path}"
        app_path="${app_path:1}"
        app_path="${app_path%?}"
        ;;
-    \|*)
-       echo_warn "App path starts with | . Manually fixing path: ${app_path}"
-       app_path="${app_path:1}"
-       ;;
-    *\|)
-       echo_warn "App path ends with | . Manually fixing path: ${app_path}"
-       app_path="${app_path%?}"
-       ;;
     *\|*)
-       echo_fail "App path contains | . You need to choose one build path: ${app_path}"
+       echo_fail "App path contains | . You need to make sure only one build path is set: ${app_path}"
        ;;
     *)
        echo_info "App path contains a file, great!! 👍"

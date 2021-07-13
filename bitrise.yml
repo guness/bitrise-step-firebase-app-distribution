@@ -6,9 +6,9 @@ app:
   - SAMPLE_APP_ANDROID: https://github.com/bitrise-io/sample-apps-android-sdk22.git
   - SAMPLE_APP_IOS: https://github.com/bitrise-io/sample-apps-ios-simple-objc.git
   - BITRISE_STEP_ID: firebase-app-distribution
-  - BITRISE_STEP_VERSION: 0.9.0
+  - BITRISE_STEP_VERSION: 0.9.1
   - BITRISE_STEP_GIT_CLONE_URL: https://github.com/guness/bitrise-step-firebase-app-distribution.git
-  - MY_STEPLIB_REPO_FORK_GIT_URL: https://github.com/guness/bitrise-steplib.git
+  - MY_STEPLIB_REPO_FORK_GIT_URL: git@github.com:guness/bitrise-steplib.git
   - FIREBASE_CI_TOKEN: $FIREBASE_CI_TOKEN
   - FIREBASE_APP_ID_ANDROID: $FIREBASE_APP_ID_ANDROID
   - FIREBASE_APP_ID_IOS: $FIREBASE_APP_ID_IOS
