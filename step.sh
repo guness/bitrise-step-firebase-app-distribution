@@ -3,6 +3,8 @@ set -e
 
 THIS_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+MAX_RELEASE_NOTES_LENGTH=4000
+
 #=======================================
 # Functions
 #=======================================
@@ -52,6 +54,18 @@ function validate_required_input {
     value=$2
     if [ -z "${value}" ] ; then
         echo_fail "Missing required input: ${key}"
+    fi
+}
+
+function truncate_release_notes {
+    release_notes=$1
+    original_length=${#release_notes}
+    if (( $original_length > $MAX_RELEASE_NOTES_LENGTH )); then
+        end_message="..."
+        cut_limit=$(($MAX_RELEASE_NOTES_LENGTH-${#end_message}))
+        echo "${release_notes:0:$cut_limit}${end_message}"
+    else
+        echo "${release_notes}"
     fi
 }
 
@@ -183,7 +197,7 @@ submit_cmd="$submit_cmd --app \"${app}\""
 
 ## Optional params
 if [ -n "${release_notes}" ] ; then
-    submit_cmd="$submit_cmd --release-notes \"$(escape "$release_notes")\""
+    submit_cmd="$submit_cmd --release-notes \"$(escape $(truncate_release_notes "$release_notes"))\""
 fi
 
 if [ -n "${release_notes_file}" ] && [ -f "${release_notes_file}" ] ; then
