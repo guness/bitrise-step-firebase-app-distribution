@@ -78,6 +78,12 @@ inputs:
       description: |
         Release notes for this build.
       is_required: false
+  - release_notes_length:
+    opts:
+      title: Max Length for Release Notes
+      description: |
+        Maximum allowed length for release notes. Beyond that the notes will be trimmed in order to prevent a failure on firebase side.
+      is_required: false
   - release_notes_file:
     opts:
       title: Release Notes File

@@ -81,6 +81,23 @@ function validate_required_input_with_options {
 }
 
 #=======================================
+# Additional functions
+#=======================================
+
+function truncate_release_notes {
+    notes=$1
+    max_length=$2
+    original_length=${#notes}
+    if (( $original_length > $max_length )); then
+        end_message="..."
+        cut_limit=$(($max_length-${#end_message}))
+        echo "${notes:0:$cut_limit}${end_message}"
+    else
+        echo "${notes}"
+    fi
+}
+
+#=======================================
 # Main
 #=======================================
 
@@ -92,6 +109,7 @@ echo_details "* service_credentials_file: $service_credentials_file"
 echo_details "* app_path: $app_path"
 echo_details "* app: $app"
 echo_details "* release_notes: $release_notes"
+echo_details "* release_notes_length: $release_notes_length"
 echo_details "* release_notes_file: $release_notes_file"
 echo_details "* testers: $testers"
 echo_details "* groups: $groups"
@@ -156,6 +174,11 @@ fi
 
 if [ -z "${app}" ] ; then
     echo_fail "Firebase App ID is not defined"
+fi
+
+if [ -n "${release_notes_length}" ] && [ "${release_notes_length}" -gt 0 ] ; then
+    echo_info "Release notes length is defined: ${release_notes_length}. Truncating release notes ..."
+    release_notes=$(truncate_release_notes "${release_notes}" "${release_notes_length}")
 fi
 
 if [ ! -z "${release_notes_file}" ] && [ ! -f "${release_notes_file}" ] ; then
