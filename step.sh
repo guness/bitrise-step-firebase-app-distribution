@@ -131,6 +131,10 @@ if [ ! -f "${app_path}" ] ; then
     echo_fail "App path defined but the file does not exist at path: ${app_path}"
 fi
 
+if [ -n "${FIREBASE_TOKEN}" ] && [ -z "${FIREBASE_TOKEN}" ] ; then
+    echo_warn "FIREBASE_TOKEN is defined but empty. This may cause a problem with the binary."
+fi
+
 if [ -z "${firebase_token}" ] ; then
     if [ -z "${service_credentials_file}" ]; then
         echo_fail "No authentication input was defined, please fill one of Firebase Token or Service Credentials Field."
@@ -165,11 +169,6 @@ else
     curl -sL firebase.tools | bash
 fi
 
-# Export Firebase Token
-if [ -n "${firebase_token}" ] ; then
-    export FIREBASE_TOKEN="${firebase_token}"
-fi
-
 # Export Service Credentials File
 if [ -n "${service_credentials_file}" ] ; then
     export GOOGLE_APPLICATION_CREDENTIALS="${service_credentials_file}"
@@ -182,6 +181,10 @@ submit_cmd="firebase appdistribution:distribute \"${app_path}\""
 submit_cmd="$submit_cmd --app \"${app}\""
 
 ## Optional params
+if [ -n "${firebase_token}" ] ; then
+    submit_cmd="$submit_cmd --token \"${firebase_token}\""
+fi
+
 if [ -n "${release_notes}" ] ; then
     submit_cmd="$submit_cmd --release-notes \"$(escape "$release_notes")\""
 fi
