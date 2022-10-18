@@ -168,8 +168,12 @@ if [ -z "${firebase_token}" ] ; then
     fi
 fi
 
+if [ -n "${FIREBASE_TOKEN}" ]  && [ -n "${service_credentials_file}" ]; then
+    echo_warn "Both authentication methods are defined: Firebase Token (via FIREBASE_TOKEN environment variable) and Service Credentials Field, one is enough."
+fi
+
 if [ -n "${firebase_token}" ]  && [ -n "${service_credentials_file}" ]; then
-    echo_info "Both authentication inputs are defined: Firebase Token and Service Credentials Field, one is enough."
+    echo_warn "Both authentication inputs are defined: Firebase Token and Service Credentials Field, one is enough."
 fi
 
 if [ -z "${app}" ] ; then
