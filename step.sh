@@ -213,7 +213,7 @@ if [ -n "${firebase_token}" ] ; then
 fi
 
 if [ -n "${release_notes}" ] ; then
-    submit_cmd="$submit_cmd --release-notes \"$(escape "$release_notes")\""
+    submit_cmd="$submit_cmd --release-notes=\"$(escape "$release_notes")\""
 fi
 
 if [ -n "${release_notes_file}" ] && [ -f "${release_notes_file}" ] ; then
