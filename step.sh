@@ -116,7 +116,6 @@ echo_details "* groups: $groups"
 echo_details "* flags: $flags"
 echo_details "* is_debug: $is_debug"
 echo_details "* upgrade_firebase_tools: $upgrade_firebase_tools"
-echo_details "ANTHONYS VERSION"
 
 echo
 
