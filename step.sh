@@ -119,6 +119,11 @@ echo_details "* upgrade_firebase_tools: $upgrade_firebase_tools"
 
 echo
 
+# Export Service Credentials File
+if [ -n "${service_credentials_file}" ] ; then
+    export GOOGLE_APPLICATION_CREDENTIALS="${service_credentials_file}"
+fi
+
 if [ -z "${app_path}" ] ; then
     echo_fail "App path for APK, AAB or IPA is not defined"
 fi
@@ -194,11 +199,6 @@ if [ "${upgrade_firebase_tools}" = true ] ; then
     curl -sL firebase.tools | upgrade=true bash
 else
     curl -sL firebase.tools | bash
-fi
-
-# Export Service Credentials File
-if [ -n "${service_credentials_file}" ] ; then
-    export GOOGLE_APPLICATION_CREDENTIALS="${service_credentials_file}"
 fi
 
 # Deploy
