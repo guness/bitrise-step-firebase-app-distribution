@@ -166,6 +166,7 @@ if [ -z "${firebase_token}" ] ; then
           echo_info "Service Credentials File is a remote url, downloading it ..."
           curl $service_credentials_file --output credentials.json
           service_credentials_file=$(pwd)/credentials.json
+          export GOOGLE_APPLICATION_CREDENTIALS="${service_credentials_file}"
           echo_info "Downloaded Service Credentials File to path: ${service_credentials_file}"
         else
           echo_fail "Service Credentials File defined but does not exist at path: ${service_credentials_file}"
