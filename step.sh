@@ -119,6 +119,11 @@ echo_details "* upgrade_firebase_tools: $upgrade_firebase_tools"
 
 echo
 
+# Export Service Credentials File
+if [ -n "${service_credentials_file}" ] ; then
+    export GOOGLE_APPLICATION_CREDENTIALS="${service_credentials_file}"
+fi
+
 if [ -z "${app_path}" ] ; then
     echo_fail "App path for APK, AAB or IPA is not defined"
 fi
@@ -161,6 +166,7 @@ if [ -z "${firebase_token}" ] ; then
           echo_info "Service Credentials File is a remote url, downloading it ..."
           curl $service_credentials_file --output credentials.json
           service_credentials_file=$(pwd)/credentials.json
+          export GOOGLE_APPLICATION_CREDENTIALS="${service_credentials_file}"
           echo_info "Downloaded Service Credentials File to path: ${service_credentials_file}"
         else
           echo_fail "Service Credentials File defined but does not exist at path: ${service_credentials_file}"
@@ -194,11 +200,6 @@ if [ "${upgrade_firebase_tools}" = true ] ; then
     curl -sL firebase.tools | upgrade=true bash
 else
     curl -sL firebase.tools | bash
-fi
-
-# Export Service Credentials File
-if [ -n "${service_credentials_file}" ] ; then
-    export GOOGLE_APPLICATION_CREDENTIALS="${service_credentials_file}"
 fi
 
 # Deploy
