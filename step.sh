@@ -240,7 +240,23 @@ fi
 echo_details "$submit_cmd"
 echo
 
-eval "${submit_cmd}"
+retries_max=3 # TODO: this better come from a step parameter
+
+retry_count=0
+while true; do
+    if eval "${submit_cmd}"; then
+        echo_details "Submission successful."
+        break
+    else
+        ((retry_count++))
+        echo_details "Submission failed, retry #${retry_count}..."
+        if [ "${retry_count}" -eq "${retries_max}" ]; then
+            echo_details "Max retries reached. Exiting."
+            exit 1
+        fi
+        sleep 3
+    fi
+done
 
 if [ $? -eq 0 ] ; then
     echo_done "Success"
