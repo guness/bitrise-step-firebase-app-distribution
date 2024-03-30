@@ -240,7 +240,23 @@ fi
 echo_details "$submit_cmd"
 echo
 
-eval "${submit_cmd}"
+number_of_allowed_retries=3  # Set the number of allowed retries before the loop
+retry_count=0  # Initialize retry_count before the loop starts
+
+while true; do
+    if eval "${submit_cmd}"; then
+        echo_details "Submission successful."
+        break
+    else
+        ((retry_count++))
+        echo_details "Submission failed, retry #${retry_count}..."
+        if [ "${retry_count}" -eq "${number_of_allowed_retries}" ]; then  # Ensure quotes around variables for safety
+            echo_details "Third attempt failed. Exiting."
+            exit 1
+        fi
+        sleep 3
+    fi
+done
 
 if [ $? -eq 0 ] ; then
     echo_done "Success"
