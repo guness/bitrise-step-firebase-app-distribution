@@ -137,3 +137,9 @@ inputs:
       value_options:
         - "false"
         - "true"
+
+outputs:
+  - FIREBASE_APP_DISTRIBUTION_RELEASE_ID: null
+    opts:
+      title: Firebase App Distribution Release ID
+      summary: The Firebase App Distribution Release ID of the uploaded build.

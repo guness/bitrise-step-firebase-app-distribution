@@ -97,6 +97,20 @@ function truncate_release_notes {
     fi
 }
 
+function extract_release_id {
+    local output="$1"
+    local release_id
+
+    release_id=$(echo "$output" | grep -Eo '/releases/[a-zA-Z0-9]+' | head -n1 | awk -F'/' '{print $3}')
+
+    if [ -z "$release_id" ]; then
+        echo_warn "Release ID not found in the output."
+    else
+        echo_info "Release ID: $release_id"
+        envman add --key FIREBASE_APP_DISTRIBUTION_RELEASE_ID --value "$release_id"
+    fi
+}
+
 #=======================================
 # Main
 #=======================================
@@ -240,7 +254,13 @@ fi
 echo_details "$submit_cmd"
 echo
 
-eval "${submit_cmd}"
+# Execute the command and capture the output
+output=$(eval "${submit_cmd}" 2>&1)
+
+echo "$output"
+
+# Set output variables
+extract_release_id "$output"
 
 if [ $? -eq 0 ] ; then
     echo_done "Success"
