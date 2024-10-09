@@ -137,3 +137,13 @@ inputs:
       value_options:
         - "false"
         - "true"
+
+outputs:
+  - FIREBASE_CONSOLE_URL:
+    opts:
+      title: firebase console url
+      summary: The firebase console URL of the deployed app
+  - FIREBASE_APP_DISTRIBUTION_URL:
+    opts:
+      title: firebase app distribution url
+      summary: Share this release with testers who have access
