@@ -199,7 +199,11 @@ fi
 if [ "${upgrade_firebase_tools}" = true ] ; then
     curl -sL firebase.tools | upgrade=true bash
 else
-    curl -sL firebase.tools | bash
+    if command -v firebase >/dev/null 2>&1 ; then
+        echo_info "Firebase CLI is already installed. Skipping installation."
+    else
+        curl -sL firebase.tools | bash
+    fi
 fi
 
 # Deploy
