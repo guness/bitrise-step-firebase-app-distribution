@@ -139,6 +139,14 @@ inputs:
         - "true"
 
 outputs:
+  - FIREBASE_CONSOLE_URL:
+    opts:
+      title: Firebase Console URL
+      summary: The firebase console URL of the deployed app
+  - FIREBASE_APP_DISTRIBUTION_URL:
+    opts:
+      title: Firebase App Distribution URL
+      summary: Share this release with testers who have access
   - FIREBASE_APP_DISTRIBUTION_RELEASE_ID: null
     opts:
       title: Firebase App Distribution Release ID
