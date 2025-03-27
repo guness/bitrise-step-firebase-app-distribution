@@ -8,11 +8,11 @@
 # - Bitrise CLI guides: http://devcenter.bitrise.io/bitrise-cli/
 
 title: |-
-  [BETA] Firebase App Distribution
+  Firebase App Distribution
 summary: |
-  [BETA] Distributes your builds via Firebase App Distribution
+  Distributes your builds via Firebase App Distribution
 description: |
-  [BETA] Uploads your app binaries to Firebase and sends email to your testers.
+  Uploads your app binaries to Firebase and sends email to your testers.
 website: https://github.com/guness/bitrise-step-firebase-app-distribution
 source_code_url: https://github.com/guness/bitrise-step-firebase-app-distribution
 support_url: https://github.com/guness/bitrise-step-firebase-app-distribution/issues
