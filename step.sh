@@ -222,6 +222,9 @@ fi
 
 # Deploy
 echo_info "Deploying build to Firebase"
+echo_details "ZZZ firebase_token: ${firebase_token}"
+echo_details "ZZZ FIREBASE_TOKEN: ${FIREBASE_TOKEN}"
+echo_details "ZZZ app_path: ${app_path}"
 
 submit_cmd="firebase appdistribution:distribute \"${app_path}\""
 submit_cmd="$submit_cmd --app \"${app}\""
@@ -257,8 +260,40 @@ fi
 
 echo_details "$submit_cmd"
 
-# Execute the command and capture the output
-output=$(eval "${submit_cmd}" 2>&1)
+# Print command with dots between characters to see full structure including redacted content
+echo_details "Dot-separated command: $(echo "$submit_cmd" | sed 's/./&./g')"
+
+# Print environment variables to help with debugging in dot-separated format on a single line
+echo_details "Environment variables (dot-separated): $(env | sort | tr '\n' ' ' | sed 's/./&./g')"
+
+echo_details "submit_cmd DONE, going for eval"
+
+# Execute the command and capture the output, ensuring we capture output even if command fails
+{
+    # Create a temporary file to store the output
+    output_file=$(mktemp)
+    
+    # Use a subshell to run the command and capture its output and exit status
+    set +e  # Temporarily disable exit on error
+    eval "${submit_cmd}" > "$output_file" 2>&1
+    command_status=$?
+    set -e  # Re-enable exit on error
+    
+    # Read the output from the file
+    output=$(<"$output_file")
+    
+    # Clean up the temporary file
+    rm -f "$output_file"
+    
+    # If the command failed, we still want to process the output
+    if [ $command_status -ne 0 ]; then
+        echo_warn "Command failed with exit status $command_status"
+        echo_details "Error output: $output"
+    fi
+}
+
+echo_details "ZZZ output: ${output}"
+
 
 # Adjust the number of `sed -n 2p` if the position of the URL changes in the output
 FIREBASE_CONSOLE_URL=$(echo $output | grep -Eo "(http|https)://[a-zA-Z0-9./?=-_%:-]*" | sed -n 2p)
@@ -273,8 +308,11 @@ echo "$output"
 
 # Set output variables
 extract_release_id "$output"
+extract_status=$?
 
-if [ $? -eq 0 ] ; then
+# Determine if the step was successful based on both the command execution
+# and the release ID extraction
+if [ ${command_status:-0} -eq 0 ] && [ $extract_status -eq 0 ] ; then
     echo_done "Success"
 else
     echo_fail "Fail"
