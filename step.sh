@@ -111,11 +111,39 @@ function extract_release_id {
     fi
 }
 
+function verify_firebase_auth {
+    echo_info "Verifying Firebase authentication..."
+    
+    # First, try to authenticate with gcloud
+    if ! gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS" 2>/dev/null; then
+        echo_fail "Failed to authenticate with gcloud"
+        return 1
+    fi
+    
+    # Wait for authentication to complete and verify
+    local max_attempts=6
+    local attempt=1
+    local wait_time=5
+    
+    while [ $attempt -le $max_attempts ]; do
+        if gcloud auth print-access-token >/dev/null 2>&1 && \
+           firebase projects:list >/dev/null 2>&1; then
+            echo_done "Firebase authentication successful"
+            return 0
+        fi
+        echo_warn "Waiting for authentication to complete (attempt $attempt of $max_attempts)..."
+        sleep $wait_time
+        attempt=$((attempt + 1))
+    done
+    
+    echo_fail "Failed to verify Firebase authentication after $max_attempts attempts"
+    return 1
+}
+
 #=======================================
 # Main
 #=======================================
 
-#
 # Validate parameters
 echo_info "Configs:"
 echo_details "* firebase_token: $firebase_token"
@@ -220,6 +248,11 @@ else
     fi
 fi
 
+# Verify Firebase authentication for service account
+if [ -n "${service_credentials_file}" ] ; then
+    verify_firebase_auth || echo_fail "Firebase authentication verification failed"
+fi
+
 # Deploy
 echo_info "Deploying build to Firebase"
 echo_details "ZZZ firebase_token: ${firebase_token}"
@@ -295,12 +328,12 @@ echo_details "submit_cmd DONE, going for eval"
 echo_details "ZZZ output: ${output}"
 
 
-# Adjust the number of `sed -n 2p` if the position of the URL changes in the output
-FIREBASE_CONSOLE_URL=$(echo $output | grep -Eo "(http|https)://[a-zA-Z0-9./?=-_%:-]*" | sed -n 2p)
+# Extract URLs and store them
+FIREBASE_CONSOLE_URL=$(echo "$output" | grep -Eo "(http|https)://[a-zA-Z0-9./?=-_%:-]*" | sed -n 2p)
 echo_info "firebase console url: ${FIREBASE_CONSOLE_URL}"
 envman add --key FIREBASE_CONSOLE_URL --value "${FIREBASE_CONSOLE_URL}"
 
-FIREBASE_APP_DISTRIBUTION_URL=$(echo $output | grep -Eo "(http|https)://[a-zA-Z0-9./?=_%:-]*" | sed -n 3p)
+FIREBASE_APP_DISTRIBUTION_URL=$(echo "$output" | grep -Eo "(http|https)://[a-zA-Z0-9./?=_%:-]*" | sed -n 3p)
 echo_info "firebase app distribution url: ${FIREBASE_APP_DISTRIBUTION_URL}"
 envman add --key FIREBASE_APP_DISTRIBUTION_URL --value "${FIREBASE_APP_DISTRIBUTION_URL}"
 
