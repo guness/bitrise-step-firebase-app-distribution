@@ -97,19 +97,6 @@ function truncate_release_notes {
     fi
 }
 
-function extract_release_id {
-    local output="$1"
-    local release_id
-
-    release_id=$(echo "$output" | grep -Eo '/releases/[a-zA-Z0-9]+' | head -n1 | awk -F'/' '{print $3}')
-
-    if [ -z "$release_id" ]; then
-        echo_warn "Release ID not found in the output."
-    else
-        echo_info "Release ID: $release_id"
-        envman add --key FIREBASE_APP_DISTRIBUTION_RELEASE_ID --value "$release_id"
-    fi
-}
 
 #=======================================
 # Main
@@ -289,13 +276,14 @@ release_json=$(printf '%s\n' "$output" \
 firebase_console_uri=""
 testing_uri=""
 binary_download_uri=""
+release_name=""
 release_id=""
 
 if [ -n "${release_json}" ] ; then
-    firebase_console_uri=$(printf '%s' "$release_json" | jq -r '.response.release.firebaseConsoleUri // empty' 2>/dev/null)
-    testing_uri=$(printf         '%s' "$release_json" | jq -r '.response.release.testingUri // empty'         2>/dev/null)
-    binary_download_uri=$(printf '%s' "$release_json" | jq -r '.response.release.binaryDownloadUri // empty'  2>/dev/null)
-    release_name=$(printf        '%s' "$release_json" | jq -r '.response.release.name // empty'               2>/dev/null)
+    firebase_console_uri=$(printf '%s' "$release_json" | jq -r '.response.release.firebaseConsoleUri // empty' 2>/dev/null || true)
+    testing_uri=$(printf         '%s' "$release_json" | jq -r '.response.release.testingUri // empty'         2>/dev/null || true)
+    binary_download_uri=$(printf '%s' "$release_json" | jq -r '.response.release.binaryDownloadUri // empty'  2>/dev/null || true)
+    release_name=$(printf        '%s' "$release_json" | jq -r '.response.release.name // empty'               2>/dev/null || true)
     release_id="${release_name##*/}"
 fi
 
