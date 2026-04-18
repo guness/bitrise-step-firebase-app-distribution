@@ -147,6 +147,10 @@ outputs:
     opts:
       title: Firebase App Distribution URL
       summary: Share this release with testers who have access
+  - FIREBASE_BITRISE_BINARY_DOWNLOAD_URL:
+    opts:
+      title: Firebase App Distribution Binary Download URL
+      summary: Signed download URL for the uploaded APK/AAB/IPA (expires in one hour)
   - FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID: null
     opts:
       title: Firebase App Distribution Release ID
