@@ -77,8 +77,25 @@ workflows:
         - app: $FIREBASE_APP_ID_ANDROID
         - app_path: $BITRISE_IPA_PATH|$BITRISE_APK_PATH|$BITRISE_AAB_PATH
         - service_credentials_file: $BITRISEIO_service_credentials_file_URL
-        - is_debug: "true"
+        - is_debug: "false"
         - release_notes: "Some Test  '     #2  here"
+    - script:
+        title: Assert outputs populated
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            set -e
+            fail=0
+            for var in FIREBASE_BITRISE_CONSOLE_URL FIREBASE_BITRISE_APP_DISTRIBUTION_URL FIREBASE_BITRISE_BINARY_DOWNLOAD_URL FIREBASE_APP_DISTRIBUTION_RELEASE_ID ; do
+              eval "value=\$$var"
+              if [ -z "$value" ] ; then
+                echo "FAIL $var is empty"
+                fail=1
+              else
+                echo "OK   $var = $value"
+              fi
+            done
+            exit $fail
   deploy-ios:
     steps:
     - path::./:
@@ -88,8 +105,25 @@ workflows:
         - app: $FIREBASE_APP_ID_IOS
         - app_path: $BITRISE_IPA_PATH|$BITRISE_APK_PATH|$BITRISE_AAB_PATH
         - firebase_token: $FIREBASE_CI_TOKEN
-        - is_debug: "true"
+        - is_debug: "false"
         - release_notes: 'Some Test #1 "Over" here'
+    - script:
+        title: Assert outputs populated
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            set -e
+            fail=0
+            for var in FIREBASE_BITRISE_CONSOLE_URL FIREBASE_BITRISE_APP_DISTRIBUTION_URL FIREBASE_BITRISE_BINARY_DOWNLOAD_URL FIREBASE_APP_DISTRIBUTION_RELEASE_ID ; do
+              eval "value=\$$var"
+              if [ -z "$value" ] ; then
+                echo "FAIL $var is empty"
+                fail=1
+              else
+                echo "OK   $var = $value"
+              fi
+            done
+            exit $fail
   deploy-bitrise:
     steps:
     - deploy-to-bitrise-io:
