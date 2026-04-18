@@ -77,8 +77,25 @@ workflows:
         - app: $FIREBASE_APP_ID_ANDROID
         - app_path: $BITRISE_IPA_PATH|$BITRISE_APK_PATH|$BITRISE_AAB_PATH
         - service_credentials_file: $BITRISEIO_service_credentials_file_URL
-        - is_debug: "true"
+        - is_debug: "false"
         - release_notes: "Some Test  '     #2  here"
+    - script:
+        title: Assert outputs populated
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            set -e
+            fail=0
+            for var in FIREBASE_BITRISE_CONSOLE_URL FIREBASE_BITRISE_APP_DISTRIBUTION_URL FIREBASE_BITRISE_BINARY_DOWNLOAD_URL FIREBASE_APP_DISTRIBUTION_RELEASE_ID ; do
+              eval "value=\$$var"
+              if [ -z "$value" ] ; then
+                echo "FAIL $var is empty"
+                fail=1
+              else
+                echo "OK   $var = $value"
+              fi
+            done
+            exit $fail
   deploy-ios:
     steps:
     - path::./:
@@ -88,8 +105,25 @@ workflows:
         - app: $FIREBASE_APP_ID_IOS
         - app_path: $BITRISE_IPA_PATH|$BITRISE_APK_PATH|$BITRISE_AAB_PATH
         - firebase_token: $FIREBASE_CI_TOKEN
-        - is_debug: "true"
+        - is_debug: "false"
         - release_notes: 'Some Test #1 "Over" here'
+    - script:
+        title: Assert outputs populated
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            set -e
+            fail=0
+            for var in FIREBASE_BITRISE_CONSOLE_URL FIREBASE_BITRISE_APP_DISTRIBUTION_URL FIREBASE_BITRISE_BINARY_DOWNLOAD_URL FIREBASE_APP_DISTRIBUTION_RELEASE_ID ; do
+              eval "value=\$$var"
+              if [ -z "$value" ] ; then
+                echo "FAIL $var is empty"
+                fail=1
+              else
+                echo "OK   $var = $value"
+              fi
+            done
+            exit $fail
   deploy-bitrise:
     steps:
     - deploy-to-bitrise-io:
@@ -148,3 +182,110 @@ workflows:
     before_run:
     - build-android
     - deploy-android
+  test-parse-primary:
+    description: |-
+      Exercises the JSON-first parser against a hermetic `firebase` stub that
+      emits realistic `--debug` output. Does not touch real Firebase.
+    steps:
+    - script:
+        title: Prepare firebase stub (full-debug)
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            set -ex
+            STUB_DIR="$BITRISE_SOURCE_DIR/_tmp/stub-primary"
+            rm -rf "$STUB_DIR"
+            mkdir -p "$STUB_DIR"
+            cp "$BITRISE_SOURCE_DIR/_fixtures/firebase-stub-full-debug.sh" "$STUB_DIR/firebase"
+            chmod +x "$STUB_DIR/firebase"
+            echo "stub" > "$STUB_DIR/app.aab"
+            envman add --key PATH --value "$STUB_DIR:$PATH"
+            envman add --key STUB_APP_PATH --value "$STUB_DIR/app.aab"
+    - path::./:
+        title: Run step against stub
+        inputs:
+        - app: "1:1:android:1"
+        - app_path: $STUB_APP_PATH
+        - firebase_token: stub-token
+        - is_debug: "false"
+    - script:
+        title: Assert outputs
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            set -e
+            fail=0
+            check() {
+              local name="$1" expected="$2" actual="$3"
+              if [ "$actual" != "$expected" ] ; then
+                echo "FAIL $name: expected [$expected] got [$actual]"
+                fail=1
+              else
+                echo "OK   $name"
+              fi
+            }
+            check FIREBASE_BITRISE_CONSOLE_URL \
+              "https://console.firebase.google.com/project/TEST_PROJ/appdistribution/app/TEST_APP/releases/PRIMARYID?utm_source=firebase-tools" \
+              "$FIREBASE_BITRISE_CONSOLE_URL"
+            check FIREBASE_BITRISE_APP_DISTRIBUTION_URL \
+              "https://appdistribution.firebase.google.com/testerapps/TEST_APP/releases/PRIMARYID?utm_source=firebase-tools" \
+              "$FIREBASE_BITRISE_APP_DISTRIBUTION_URL"
+            check FIREBASE_BITRISE_BINARY_DOWNLOAD_URL \
+              "https://firebaseappdistribution.googleapis.com/app-binary-downloads/projects/TEST_PROJ/apps/TEST_APP/releases/PRIMARYID/binaries/BINID/app.aab?utm_source=firebase-tools&token=FAKETOKEN" \
+              "$FIREBASE_BITRISE_BINARY_DOWNLOAD_URL"
+            check FIREBASE_APP_DISTRIBUTION_RELEASE_ID "PRIMARYID" "$FIREBASE_APP_DISTRIBUTION_RELEASE_ID"
+            exit $fail
+  test-parse-fallback:
+    description: |-
+      Exercises the labeled-line fallback parser against a hermetic `firebase`
+      stub that omits the `[apiv2][body]` debug JSON entirely. Simulates a
+      future CLI version that drops the debug log format we rely on.
+    steps:
+    - script:
+        title: Prepare firebase stub (labeled-only)
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            set -ex
+            STUB_DIR="$BITRISE_SOURCE_DIR/_tmp/stub-fallback"
+            rm -rf "$STUB_DIR"
+            mkdir -p "$STUB_DIR"
+            cp "$BITRISE_SOURCE_DIR/_fixtures/firebase-stub-labeled-only.sh" "$STUB_DIR/firebase"
+            chmod +x "$STUB_DIR/firebase"
+            echo "stub" > "$STUB_DIR/app.aab"
+            envman add --key PATH --value "$STUB_DIR:$PATH"
+            envman add --key STUB_APP_PATH --value "$STUB_DIR/app.aab"
+    - path::./:
+        title: Run step against stub
+        inputs:
+        - app: "1:1:android:1"
+        - app_path: $STUB_APP_PATH
+        - firebase_token: stub-token
+        - is_debug: "false"
+    - script:
+        title: Assert outputs
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            set -e
+            fail=0
+            check() {
+              local name="$1" expected="$2" actual="$3"
+              if [ "$actual" != "$expected" ] ; then
+                echo "FAIL $name: expected [$expected] got [$actual]"
+                fail=1
+              else
+                echo "OK   $name"
+              fi
+            }
+            check FIREBASE_BITRISE_CONSOLE_URL \
+              "https://console.firebase.google.com/project/TEST_PROJ/appdistribution/app/TEST_APP/releases/FALLBACKID?utm_source=firebase-tools" \
+              "$FIREBASE_BITRISE_CONSOLE_URL"
+            check FIREBASE_BITRISE_APP_DISTRIBUTION_URL \
+              "https://appdistribution.firebase.google.com/testerapps/TEST_APP/releases/FALLBACKID?utm_source=firebase-tools" \
+              "$FIREBASE_BITRISE_APP_DISTRIBUTION_URL"
+            check FIREBASE_BITRISE_BINARY_DOWNLOAD_URL \
+              "https://firebaseappdistribution.googleapis.com/app-binary-downloads/projects/TEST_PROJ/apps/TEST_APP/releases/FALLBACKID/binaries/BIN2/app.aab?utm_source=firebase-tools&token=FAKE2" \
+              "$FIREBASE_BITRISE_BINARY_DOWNLOAD_URL"
+            check FIREBASE_APP_DISTRIBUTION_RELEASE_ID "FALLBACKID" "$FIREBASE_APP_DISTRIBUTION_RELEASE_ID"
+            exit $fail

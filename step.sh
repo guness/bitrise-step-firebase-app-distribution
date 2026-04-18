@@ -97,20 +97,6 @@ function truncate_release_notes {
     fi
 }
 
-function extract_release_id {
-    local output="$1"
-    local release_id
-
-    release_id=$(echo "$output" | grep -Eo '/releases/[a-zA-Z0-9]+' | head -n1 | awk -F'/' '{print $3}')
-
-    if [ -z "$release_id" ]; then
-        echo_warn "Release ID not found in the output."
-    else
-        echo_info "Release ID: $release_id"
-        envman add --key FIREBASE_APP_DISTRIBUTION_RELEASE_ID --value "$release_id"
-    fi
-}
-
 #=======================================
 # Main
 #=======================================
@@ -251,8 +237,12 @@ if [ -n "${flags}" ] ; then
     submit_cmd="$submit_cmd \"${flags}\""
 fi
 
-if [ "${is_debug}" = true ] ; then
-    submit_cmd="$submit_cmd --debug"
+# --debug is always appended so we can parse the UploadReleaseResponse JSON
+# from the debug body line. Display filtering below decides what to echo.
+submit_cmd="$submit_cmd --debug"
+
+if ! command -v jq >/dev/null 2>&1 ; then
+    echo_fail "jq is required by this step but was not found on PATH. Please install jq and try again."
 fi
 
 echo_details "$submit_cmd"
@@ -260,22 +250,79 @@ echo_details "$submit_cmd"
 # Execute the command and capture the output
 output=$(eval "${submit_cmd}" 2>&1)
 
-# Adjust the number of `sed -n 2p` if the position of the URL changes in the output
-FIREBASE_BITRISE_CONSOLE_URL=$(echo $output | grep -Eo "(http|https)://[a-zA-Z0-9./?=-_%:-]*" | sed -n 2p)
-echo_info "firebase console url: ${FIREBASE_BITRISE_CONSOLE_URL}"
-envman add --key FIREBASE_BITRISE_CONSOLE_URL --value "${FIREBASE_BITRISE_CONSOLE_URL}"
-
-FIREBASE_BITRISE_APP_DISTRIBUTION_URL=$(echo $output | grep -Eo "(http|https)://[a-zA-Z0-9./?=_%:-]*" | sed -n 3p)
-echo_info "firebase app distribution url: ${FIREBASE_BITRISE_APP_DISTRIBUTION_URL}"
-envman add --key FIREBASE_BITRISE_APP_DISTRIBUTION_URL --value "${FIREBASE_BITRISE_APP_DISTRIBUTION_URL}"
-
-echo "$output"
-
-# Set output variables
-extract_release_id "$output"
-
-if [ $? -eq 0 ] ; then
-    echo_done "Success"
+# --- Display filter ----------------------------------------------------------
+# If the caller asked for debug, echo everything. Otherwise show only the
+# meaningful lines Firebase emits (✔ successes, i bullets, ! warnings, ⚠
+# warnings, explicit Error: lines). `|| true` so no-match doesn't trip `set -e`.
+if [ "${is_debug}" = true ] ; then
+    echo "$output"
 else
-    echo_fail "Fail"
+    printf '%s\n' "$output" | grep -E '^(✔|i |⚠|!|Error:)' || true
 fi
+
+# --- Primary extraction: JSON from [apiv2][body] debug line ------------------
+# Locate the single debug body line that contains both "done":true and a
+# "release":{ object — that's the final long-running operation response that
+# carries the Release fields we need. Then strip everything before the first
+# `{` to hand jq a clean JSON document.
+release_json=$(printf '%s\n' "$output" \
+    | grep -F '[apiv2][body]' \
+    | grep -F '"done":true' \
+    | grep -F '"release":' \
+    | tail -n1 \
+    | sed -E 's/^[^{]*//')
+
+firebase_console_uri=""
+testing_uri=""
+binary_download_uri=""
+release_name=""
+release_id=""
+
+if [ -n "${release_json}" ] ; then
+    firebase_console_uri=$(printf '%s' "$release_json" | jq -r '.response.release.firebaseConsoleUri // empty' 2>/dev/null || true)
+    testing_uri=$(printf         '%s' "$release_json" | jq -r '.response.release.testingUri // empty'         2>/dev/null || true)
+    binary_download_uri=$(printf '%s' "$release_json" | jq -r '.response.release.binaryDownloadUri // empty'  2>/dev/null || true)
+    release_name=$(printf        '%s' "$release_json" | jq -r '.response.release.name // empty'               2>/dev/null || true)
+    release_id="${release_name##*/}"
+fi
+
+# --- Fallback: labeled `✔ ...:` success lines --------------------------------
+# Runs only for fields still empty after the primary path. Keeps the step
+# working if Firebase ever drops or renames the debug JSON format.
+if [ -z "${firebase_console_uri}" ] ; then
+    firebase_console_uri=$(printf '%s\n' "$output" \
+      | grep -Eo 'View this release in the Firebase console: \S+' \
+      | awk '{print $NF}' | tail -n1)
+fi
+if [ -z "${testing_uri}" ] ; then
+    testing_uri=$(printf '%s\n' "$output" \
+      | grep -Eo 'Share this release with testers who have access: \S+' \
+      | awk '{print $NF}' | tail -n1)
+fi
+if [ -z "${binary_download_uri}" ] ; then
+    binary_download_uri=$(printf '%s\n' "$output" \
+      | grep -Eo 'Download the release binary \(link expires in 1 hour\): \S+' \
+      | awk '{print $NF}' | tail -n1)
+fi
+if [ -z "${release_id}" ] && [ -n "${firebase_console_uri}" ] ; then
+    release_id=$(printf '%s' "${firebase_console_uri}" \
+      | grep -Eo '/releases/[a-zA-Z0-9]+' | head -n1 | awk -F'/' '{print $3}')
+fi
+
+# --- Export ------------------------------------------------------------------
+export_output() {
+    local key="$1" value="$2" label="$3"
+    if [ -z "${value}" ] ; then
+        echo_warn "${label} could not be extracted from Firebase output."
+    else
+        echo_info "${label}: ${value}"
+    fi
+    envman add --key "${key}" --value "${value}"
+}
+
+export_output FIREBASE_BITRISE_CONSOLE_URL            "${firebase_console_uri}" "firebase console url"
+export_output FIREBASE_BITRISE_APP_DISTRIBUTION_URL   "${testing_uri}"          "firebase app distribution url"
+export_output FIREBASE_BITRISE_BINARY_DOWNLOAD_URL    "${binary_download_uri}"  "firebase binary download url"
+export_output FIREBASE_APP_DISTRIBUTION_RELEASE_ID    "${release_id}"           "firebase release id"
+
+echo_done "Success"
