@@ -169,7 +169,7 @@ workflows:
             bitrise share finish
   test:
     before_run:
-    - audit-this-step
+    - test-hermetic
     - test-android
     - test-ios
     after_run:
@@ -182,6 +182,39 @@ workflows:
     before_run:
     - build-android
     - deploy-android
+  test-go:
+    description: Unit and subprocess regression tests; no Firebase credentials required.
+    steps:
+    - script:
+        title: Test Go implementation
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            set -euo pipefail
+            cd "$BITRISE_SOURCE_DIR"
+            go test -race ./...
+            go vet ./...
+  test-hermetic:
+    description: Audit and test the step without uploading a build to Firebase.
+    before_run:
+    - audit-this-step
+    - test-go
+    - test-parse-primary
+    - test-parse-fallback
+    steps:
+    - script:
+        title: Ensure Firebase stubs did not leak into later workflows
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            set -euo pipefail
+            firebase_path="$(command -v firebase || true)"
+            case "$firebase_path" in
+              "$BITRISE_SOURCE_DIR"/_tmp/stub-*)
+                echo "FAIL: test Firebase stub is still on PATH"
+                exit 1
+                ;;
+            esac
   test-parse-primary:
     description: |-
       Exercises the JSON-first parser against a hermetic `firebase` stub that
@@ -199,6 +232,7 @@ workflows:
             cp "$BITRISE_SOURCE_DIR/_fixtures/firebase-stub-full-debug.sh" "$STUB_DIR/firebase"
             chmod +x "$STUB_DIR/firebase"
             echo "stub" > "$STUB_DIR/app.aab"
+            envman add --key STUB_ORIGINAL_PATH --value "$PATH"
             envman add --key PATH --value "$STUB_DIR:$PATH"
             envman add --key STUB_APP_PATH --value "$STUB_DIR/app.aab"
     - path::./:
@@ -235,6 +269,7 @@ workflows:
               "$FIREBASE_BITRISE_BINARY_DOWNLOAD_URL"
             check FIREBASE_APP_DISTRIBUTION_RELEASE_ID "PRIMARYID" "$FIREBASE_APP_DISTRIBUTION_RELEASE_ID"
             check FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID "PRIMARYID" "$FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID"
+            envman add --key PATH --value "$STUB_ORIGINAL_PATH"
             exit $fail
   test-parse-fallback:
     description: |-
@@ -254,6 +289,7 @@ workflows:
             cp "$BITRISE_SOURCE_DIR/_fixtures/firebase-stub-labeled-only.sh" "$STUB_DIR/firebase"
             chmod +x "$STUB_DIR/firebase"
             echo "stub" > "$STUB_DIR/app.aab"
+            envman add --key STUB_ORIGINAL_PATH --value "$PATH"
             envman add --key PATH --value "$STUB_DIR:$PATH"
             envman add --key STUB_APP_PATH --value "$STUB_DIR/app.aab"
     - path::./:
@@ -290,4 +326,5 @@ workflows:
               "$FIREBASE_BITRISE_BINARY_DOWNLOAD_URL"
             check FIREBASE_APP_DISTRIBUTION_RELEASE_ID "FALLBACKID" "$FIREBASE_APP_DISTRIBUTION_RELEASE_ID"
             check FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID "FALLBACKID" "$FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID"
+            envman add --key PATH --value "$STUB_ORIGINAL_PATH"
             exit $fail

@@ -3,3 +3,5 @@
 _tmp
 .DS_Store
 firebase-debug.log
+/bitrise-step-firebase-app-distribution
+/firebase-app-distribution

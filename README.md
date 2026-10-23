@@ -1,93 +1,121 @@
-# Firebase App Distribution [![Build Status](https://app.bitrise.io/app/6c61b5cbb72fc288/status.svg?token=1S5ISlzpwNdoEaC1cTGaEw&branch=develop)](https://app.bitrise.io/app/6c61b5cbb72fc288)
+# Firebase App Distribution
 
-Upload your app binaries to Firebase and sends email to your testers.
+Upload APK, AAB, and IPA builds to Firebase App Distribution and distribute them to testers.
 
+The step is implemented in Go and uses the Firebase CLI for distribution. It keeps the
+existing Bitrise input names and defaults, and exports the same release links and IDs.
 
-## How to use this Step
+## Usage
 
-Can be run directly with the [bitrise CLI](https://github.com/bitrise-io/bitrise),
-just `git clone` this repository, `cd` into it's folder in your Terminal/Command Line
-and call `bitrise run test`.
-
-*Check the `bitrise.yml` file for required inputs which have to be
-added to your `.bitrise.secrets.yml` file!*
-
-Step by step:
-
-1. Open up your Terminal / Command Line
-2. `git clone` the repository
-3. `cd` into the directory of the step (the one you just `git clone`d)
-5. Create a `.bitrise.secrets.yml` file in the same directory of `bitrise.yml`
-   (the `.bitrise.secrets.yml` is a git ignored file, you can store your secrets in it)
-6. Check the `bitrise.yml` file for any secret you should set in `.bitrise.secrets.yml`
-  * Best practice is to mark these options with something like `# define these in your .bitrise.secrets.yml`, in the `app:envs` section.
-7. Once you have all the required secret parameters in your `.bitrise.secrets.yml` you can just run this step with the [bitrise CLI](https://github.com/bitrise-io/bitrise): `bitrise run test`
-
-An example `.bitrise.secrets.yml` file:
-
-```
-envs:
-- A_SECRET_PARAM_ONE: the value for secret one
-- A_SECRET_PARAM_TWO: the value for secret two
+```yaml
+- firebase-app-distribution:
+    inputs:
+    - app: "$FIREBASE_APP_ID"
+    - app_path: "$BITRISE_APK_PATH"
+    - service_credentials_file: "$SERVICE_ACCOUNT_FILE_OR_URL"
+    - release_notes: "Bug fixes and improvements"
+    - groups: "qa-team"
 ```
 
-## How to create your own step
+Use `firebase_token` instead of `service_credentials_file` for an existing Firebase CI
+token setup. An explicit token takes precedence when both inputs are supplied, with a
+warning. When a service account is selected, an unrelated `FIREBASE_TOKEN` environment
+variable is ignored in the Firebase subprocess so it cannot override that account.
 
-1. Create a new git repository for your step (**don't fork** the *step template*, create a *new* repository)
-2. Copy the [step template](https://github.com/bitrise-steplib/step-template) files into your repository
-3. Fill the `step.sh` with your functionality
-4. Wire out your inputs to `step.yml` (`inputs` section)
-5. Fill out the other parts of the `step.yml` too
-6. Provide test values for the inputs in the `bitrise.yml`
-7. Run your step with `bitrise run test` - if it works, you're ready
+A service credential input may be a local file or an HTTP(S) URL. Downloaded files have
+private permissions and are removed after execution, including on failure. Local files
+provided by the caller are left in place.
 
-__For Step development guidelines & best practices__ check this documentation: [https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md](https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md).
+## Inputs
 
-**NOTE:**
+| Input | Behavior / default |
+| --- | --- |
+| `firebase_token` | Firebase CI token; sensitive. Required if no service credential input is provided. |
+| `service_credentials_file` | Path or HTTP(S) URL to a service account JSON file. |
+| `app_path` | APK, AAB, or IPA path. Default: `$BITRISE_IPA_PATH\|$BITRISE_APK_PATH\|$BITRISE_AAB_PATH`; exactly one path must be populated. |
+| `app` | Required Firebase App ID, such as `1:1234567890:android:0a1b2c3d4e5f67890`. |
+| `release_notes` | Inline release notes, passed literally including quotes, backticks, dollar signs, backslashes, and newlines. |
+| `release_notes_length` | Positive maximum Unicode character count for inline notes, including the trailing ellipsis. Empty, zero, or negative disables truncation. |
+| `release_notes_file` | Optional path to a text file. Missing files warn and are skipped; file contents are not truncated. |
+| `testers` | Comma-separated tester email addresses. |
+| `groups` | Comma-separated tester group aliases. |
+| `flags` | Additional Firebase CLI arguments; supports quoting and backslash escapes. |
+| `upgrade_firebase_tools` | `false` by default. When `true`, run the official Firebase installer in upgrade mode. |
+| `is_debug` | `false` by default. When `true`, display Firebase debug diagnostics as well as ordinary messages. |
 
-If you want to use your step in your project's `bitrise.yml`:
+### Quoting and additional flags
 
-1. git push the step into it's repository
-2. reference it in your `bitrise.yml` with the `git::PUBLIC-GIT-CLONE-URL@BRANCH` step reference style:
+Ordinary input values are passed as individual process arguments. They are never run as
+shell commands. Release notes beginning with a dash are supported, including bullet lists.
 
+The `flags` input is split into arguments using shell-style quoting. For example:
+
+```text
+--test-devices-file "$PROJECT_LOCATION/test devices.txt" --test-non-blocking
 ```
-- git::https://github.com/user/my-step.git@branch:
-   title: My step
-   inputs:
-   - my_input_1: "my value 1"
-   - my_input_2: "my value 2"
+
+Use a space or `=` after the option name, **not a colon**. Bitrise expands environment
+references before the step receives its inputs. The step does not perform a second round
+of variable expansion, command substitution, redirection, or glob expansion. Malformed
+quoting produces a clear error before an upload is attempted.
+
+## Outputs
+
+| Environment variable | Value |
+| --- | --- |
+| `FIREBASE_BITRISE_CONSOLE_URL` | Firebase console URL for the release. |
+| `FIREBASE_BITRISE_APP_DISTRIBUTION_URL` | Release URL for testers with access. |
+| `FIREBASE_BITRISE_BINARY_DOWNLOAD_URL` | Signed binary download URL; expires after one hour. |
+| `FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID` | Release ID under the documented output name. |
+| `FIREBASE_APP_DISTRIBUTION_RELEASE_ID` | Existing compatibility alias for the same release ID. |
+
+The step first reads the final upload operation JSON from Firebase debug output and then
+uses labeled success lines for any missing fields. Missing values warn and are exported
+as empty strings. Firebase failure diagnostics are printed and its nonzero exit code is
+preserved; a failed distribution does not export success outputs.
+
+Firebase `--debug` is always requested internally for parsing. `is_debug` controls log
+display. Known tokens and signed download query tokens are redacted in logs; the exported
+URLs retain their full values. Debug diagnostics can still contain application metadata.
+
+## Development
+
+Requires Go 1.22+, the Bitrise CLI, and its `envman` tool. The small argument quoting
+library is pinned and vendored. The Go implementation has no `jq` dependency.
+
+```sh
+go test -race ./...
+go vet ./...
+bitrise run test-hermetic
 ```
 
-You can find more examples of step reference styles
-in the [bitrise CLI repository](https://github.com/bitrise-io/bitrise/blob/master/_examples/tutorials/steps-and-workflows/bitrise.yml#L65).
+`test-hermetic` audits `step.yml`, runs the Go regression tests, and runs the two original
+Firebase output stub workflows through Bitrise's Go toolkit. It needs no Firebase
+credentials and does not upload a release. Go tests cover argument boundaries, GitHub
+escaping regressions, credential downloads and cleanup, installer behavior, output
+parsing, failure diagnostics, and compatibility of the public contract.
 
-## How to contribute to this Step
+For a direct invocation, export the inputs from `step.yml` and run `go run .` or `./step.sh`.
+The shell entrypoint is a small Go build launcher and preserves the caller's working
+directory. Ensure `envman` is on `PATH` so outputs can be exported.
 
-1. Fork this repository
-2. `git clone` it
-3. Create a branch you'll work on
-4. To use/test the step just follow the **How to use this Step** section
-5. Do the changes you want to
-6. Run/test the step before sending your contribution
-  * You can also test the step in your `bitrise` project, either on your Mac or on [bitrise.io](https://www.bitrise.io)
-  * You just have to replace the step ID in your project's `bitrise.yml` with either a relative path, or with a git URL format
-  * (relative) path format: instead of `- original-step-id:` use `- path::./relative/path/of/script/on/your/Mac:`
-  * direct git URL format: instead of `- original-step-id:` use `- git::https://github.com/user/step.git@branch:`
-  * You can find more example of alternative step referencing at: https://github.com/bitrise-io/bitrise/blob/master/_examples/tutorials/steps-and-workflows/bitrise.yml
-7. Once you're done just commit your changes & create a Pull Request
+### Real application validation and release
 
+`bitrise run test-android` and `bitrise run test-ios` build and distribute the sample apps
+configured in `bitrise.yml`. Supply the relevant credentials through the ignored
+`.bitrise.secrets.yml`. These workflows upload actual builds and may notify testers.
+`bitrise run test` runs the hermetic checks followed by both platform workflows.
 
-## Share your own Step
+Before publishing, validate real Android and iOS releases, bump `BITRISE_STEP_VERSION`,
+run `stepman audit --step-yml ./step.yml`, and use `bitrise run share-this-step` to prepare
+the StepLib update. Development branches can be tested with a `git::` Step reference:
 
-You can share your Step or step version with the [bitrise CLI](https://github.com/bitrise-io/bitrise). If you use the `bitrise.yml` included in this repository, all you have to do is:
+```yaml
+- git::https://github.com/guness/bitrise-step-firebase-app-distribution.git@dev/go:
+    inputs:
+    - app: "$FIREBASE_APP_ID"
+    - app_path: "$BITRISE_APK_PATH"
+    - service_credentials_file: "$SERVICE_ACCOUNT_FILE_OR_URL"
+```
 
-1. In your Terminal / Command Line `cd` into this directory (where the `bitrise.yml` of the step is located)
-1. Run: `bitrise run test` to test the step
-1. Run: `bitrise run audit-this-step` to audit the `step.yml`
-1. Check the `share-this-step` workflow in the `bitrise.yml`, and fill out the
-   `envs` if you haven't done so already (don't forget to bump the version number if this is an update
-   of your step!)
-1. Then run: `bitrise run share-this-step` to share the step (version) you specified in the `envs`
-1. Send the Pull Request, as described in the logs of `bitrise run share-this-step`
-
-That's all ;)
+See [the migration record](docs/go-migration-plan.md) for the design and reference projects.

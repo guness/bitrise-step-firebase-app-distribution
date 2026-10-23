@@ -1,41 +1,76 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+# Repository guide
 
 ## What this repo is
 
-A Bitrise Step that wraps the Firebase CLI's `appdistribution:distribute` command to upload Android/iOS binaries to Firebase App Distribution. It is not a compiled program — it is a single bash script (`step.sh`) plus a step contract (`step.yml`) consumed by the Bitrise runner.
+A Go Bitrise Step wrapping `firebase appdistribution:distribute` for Android and iOS.
+The Firebase CLI continues to perform uploads, release-note updates, and tester/group
+distribution. The public input and output contract is in `step.yml`.
 
-## Common commands
+## Commands
 
-Requires the `bitrise` CLI locally. Before running any workflow, populate `.bitrise.secrets.yml` with `FIREBASE_APP_ID_ANDROID`, `FIREBASE_APP_ID_IOS`, and `FIREBASE_CI_TOKEN` (file is git-ignored). Bitrise merges it into env at run time.
-
-- `bitrise run test` — full CI: audit + build & deploy Android + build & deploy iOS
-- `bitrise run test-android` / `bitrise run test-ios` — one platform only
-- `bitrise run build-android` / `bitrise run build-ios` — build a sample app into `./_tmp` without deploying (the `_tmp` dir is recreated each run)
-- `bitrise run deploy-android` / `bitrise run deploy-ios` — run just this step against an already-built artifact
-- `bitrise run audit-this-step` — `stepman audit` on `step.yml` (run this after editing `step.yml`)
-- `bitrise run share-this-step` — publishes a new version to a StepLib fork (see `BITRISE_STEP_VERSION` in `bitrise.yml`; bump before sharing)
-
-To invoke `step.sh` outside Bitrise, export the input variables named in `step.yml` (`app`, `app_path`, `firebase_token` or `service_credentials_file`, etc.) and run `./step.sh` directly — the script reads them from the environment.
+- `go test ./...` — unit and subprocess regression tests, no credentials or Firebase upload.
+- `go test -race ./...` and `go vet ./...` — race detection and static checks.
+- `bitrise run test-hermetic` — Step audit, Go tests, and both existing parser workflows
+  through the actual Go toolkit. Does not contact Firebase.
+- `bitrise run test-parse-primary` / `test-parse-fallback` — individual CLI stub workflows.
+- `stepman audit --step-yml ./step.yml` — required after editing the Step contract.
+- `bitrise run test-android` / `test-ios` — build and distribute real sample applications;
+  requires credentials and sends the configured Firebase distribution notifications.
+- `bitrise run test` — hermetic checks followed by both real sample uploads.
+- `bitrise run share-this-step` — publish a version to StepLib; bump `BITRISE_STEP_VERSION`
+  in `bitrise.yml` only when shipping a release.
 
 ## Architecture
 
-Three files form the contract with Bitrise; they must stay in sync:
+- `main.go` handles process exit status and cancellation.
+- `internal/step/config.go` reads all 12 public environment inputs, normalizes the
+  pipe-delimited artifact path, truncates inline notes, and constructs argument slices.
+- `internal/step/runner.go` manages CLI installation/upgrades, private temporary
+  credential downloads, CLI execution, diagnostics, cleanup, and envman exports.
+- `internal/step/output.go` decodes the final upload operation JSON and uses labeled
+  success lines for missing fields. It also controls debug versus ordinary log display.
+- `internal/step/redact.go` removes known credentials and download tokens from logs.
+- `step.yml` uses the native Go toolkit; its package name must match `go.mod`.
+- `step.sh` is a compatibility launcher for direct callers. It builds the Go executable
+  and invokes it in the caller's original working directory.
+- `_fixtures/` contains the original Firebase output stubs. Tests also use temporary
+  executable stubs and local HTTP servers; they never need real credentials.
 
-1. **`step.yml`** — public contract. Declares `inputs` (become env vars in `step.sh`) and `outputs` (env vars the step exports back). Also declares `toolkit: bash` with `entry_file: step.sh`. Any new input or output must be added here or the runner rejects it.
-2. **`step.sh`** — implementation. Sourced as a bash script; Bitrise has already exported the declared inputs as lowercase env vars. It validates inputs, installs/upgrades the Firebase CLI via `curl -sL firebase.tools | bash` (skipped if already installed unless `upgrade_firebase_tools=true`), constructs a `firebase appdistribution:distribute` command string, `eval`s it, then parses stdout to extract outputs.
-3. **`bitrise.yml`** — local test harness. Defines workflows that build sample Android/iOS apps into `./_tmp` and then invoke the step via `path::./`.
+## Compatibility rules
 
-### Key behaviors in `step.sh` that are easy to break
+Keep all input names and defaults unchanged. `TestStepContract` freezes those names,
+checks that every input is read, and matches declared outputs to actual exports.
 
-- **Release ID output compatibility**: export both `FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID` (the documented name) and `FIREBASE_APP_DISTRIBUTION_RELEASE_ID` (the legacy alias) with the same value. Both are declared in `step.yml` and asserted by the parsing workflows.
-- **Authentication is one-of**: `firebase_token` XOR `service_credentials_file`. If `service_credentials_file` starts with `http`, it's downloaded via `curl` to `./credentials.json` and `GOOGLE_APPLICATION_CREDENTIALS` is set. Both-set is a warning, not an error.
-- **`app_path` has a pipe-path workaround**: Bitrise sometimes chains `$BITRISE_IPA_PATH|$BITRISE_APK_PATH|$BITRISE_AAB_PATH`, leaving leading/trailing `|` when some vars are empty. The `case` block at lines ~145-165 strips these; an internal `|` (multiple real paths) is a hard fail. Don't remove this logic.
-- **Outputs come from the Firebase `--debug` JSON body, with a labeled-line fallback**: `step.sh` always passes `--debug` to `firebase appdistribution:distribute` internally (regardless of the `is_debug` input). It parses the `UploadReleaseResponse` JSON from the `[apiv2][body]` debug line via `jq` to populate `FIREBASE_BITRISE_CONSOLE_URL`, `FIREBASE_BITRISE_APP_DISTRIBUTION_URL`, `FIREBASE_BITRISE_BINARY_DOWNLOAD_URL`, and `FIREBASE_APP_DISTRIBUTION_RELEASE_ID`. If the JSON is missing (future Firebase CLI could change), it falls back to grepping the `✔ View/Share/Download …` labeled success lines. The `is_debug` input now controls *display only*: `false` (default) filters the Bitrise log to `✔`/`i`/`⚠`/`!`/`Error:` prefixed lines; `true` echoes the full raw debug output. **`jq` is a hard dependency** — Bitrise stacks ship it, but the step hard-fails with a clear message if it's missing. Hermetic tests for both paths live in `bitrise run test-parse-primary` / `test-parse-fallback` using stubs in `_fixtures/`.
-- **Release notes escaping**: `escape()` only escapes `"`. The distribute command is assembled into a string and run via `eval`, so any input flowing into `submit_cmd` must be safe inside double quotes.
-- **Release notes truncation**: if `release_notes_length > 0`, notes are trimmed to that length with `...` appended (Firebase rejects overlong notes).
+Export all three URLs and both release ID names. `FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID`
+is the documented name; `FIREBASE_APP_DISTRIBUTION_RELEASE_ID` is the existing alias.
+Both must have identical values. Missing fields warn and are exported as empty strings.
 
-## Contributing workflow
+Exactly one artifact path must remain after removing empty leading/trailing pipe
+segments. Keep APK, AAB, and IPA support. Do not interpret any input as shell code.
+Quotes, backticks, dollar signs, backslashes, and newlines in ordinary inputs are literal.
+`flags` uses shell-style word splitting only, without shell evaluation or expansion.
+Bitrise performs environment expansion before the process receives its inputs.
 
-Changes to `step.sh` or `step.yml` should be validated with `bitrise run test` (requires working Firebase credentials in `.bitrise.secrets.yml`). Bump `BITRISE_STEP_VERSION` in `bitrise.yml` when shipping a new version.
+Inline release notes use `--release-notes=<value>` so leading dashes are safe. A positive
+length limits Unicode characters including the ellipsis; zero/negative/empty disables
+truncation. Missing release-note files warn and are skipped. File contents are not truncated.
+
+An explicit `firebase_token` takes precedence if both auth inputs are supplied.
+An explicit service account suppresses inherited `FIREBASE_TOKEN` only in the child
+process. Downloaded credentials are mode 0600 and removed on success and failure;
+caller-owned files must never be removed.
+
+Always request Firebase `--debug` internally to obtain operation JSON. `is_debug`
+controls display only. Print captured diagnostics even when the CLI fails, and preserve
+its nonzero exit code. Redact known secrets in both output and errors. Export signed
+URLs intact to envman while redacting their tokens from logs.
+
+## Dependencies and release checks
+
+Go 1.22+ is required. The sole nonstandard dependency is the pinned, vendored
+`github.com/kballard/go-shellquote`, also used by other Bitrise Go Steps. Run
+`go mod tidy` and `go mod vendor` after changing dependencies. Go code does not need jq.
+The official Firebase installer still runs under Bash when installation/upgrade is needed.
+
+Use the macOS/Linux GitHub Actions checks and `test-hermetic` for ordinary development.
+Real Android/iOS uploads remain a release gate; record whether they were actually run.

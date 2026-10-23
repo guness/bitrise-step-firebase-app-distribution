@@ -34,8 +34,8 @@ is_skippable: false
 run_if: ""
 
 toolkit:
-  bash:
-    entry_file: step.sh
+  go:
+    package_name: github.com/guness/bitrise-step-firebase-app-distribution
 
 inputs:
   - firebase_token:
@@ -76,13 +76,16 @@ inputs:
     opts:
       title: Release Notes
       description: |
-        Release notes for this build.
+        Release notes for this build. Quotes, backticks, dollar signs, and newlines
+        are passed literally to Firebase; they are never evaluated as shell code.
       is_required: false
   - release_notes_length:
     opts:
       title: Max Length for Release Notes
       description: |
-        Maximum allowed length for release notes. Beyond that the notes will be trimmed in order to prevent a failure on firebase side.
+        Maximum character count for inline release notes, including a trailing
+        ellipsis when truncated. Empty, zero, or negative values disable truncation.
+        This setting does not truncate release_notes_file.
       is_required: false
   - release_notes_file:
     opts:
@@ -116,7 +119,12 @@ inputs:
       title: Additional Command Flags
       description: |
         Additional flags to be appended to Firebase command.
-        ie. you can specify file inputs for groups, and testers.
+        For example: --testers-file "testers list.txt" --groups-file groups.txt
+
+        Separate flags with spaces and quote values that contain spaces. Do not
+        add a colon after a flag name. Quotes and backslash escapes are parsed,
+        but shell commands, variable expansion, and glob expansion are not run.
+        Bitrise expands environment references in the input before the step runs.
       is_required: false
   - upgrade_firebase_tools: "false"
     opts:
