@@ -86,7 +86,7 @@ workflows:
             #!/usr/bin/env bash
             set -e
             fail=0
-            for var in FIREBASE_BITRISE_CONSOLE_URL FIREBASE_BITRISE_APP_DISTRIBUTION_URL FIREBASE_BITRISE_BINARY_DOWNLOAD_URL FIREBASE_APP_DISTRIBUTION_RELEASE_ID ; do
+            for var in FIREBASE_BITRISE_CONSOLE_URL FIREBASE_BITRISE_APP_DISTRIBUTION_URL FIREBASE_BITRISE_BINARY_DOWNLOAD_URL FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID FIREBASE_APP_DISTRIBUTION_RELEASE_ID ; do
               eval "value=\$$var"
               if [ -z "$value" ] ; then
                 echo "FAIL $var is empty"
@@ -114,7 +114,7 @@ workflows:
             #!/usr/bin/env bash
             set -e
             fail=0
-            for var in FIREBASE_BITRISE_CONSOLE_URL FIREBASE_BITRISE_APP_DISTRIBUTION_URL FIREBASE_BITRISE_BINARY_DOWNLOAD_URL FIREBASE_APP_DISTRIBUTION_RELEASE_ID ; do
+            for var in FIREBASE_BITRISE_CONSOLE_URL FIREBASE_BITRISE_APP_DISTRIBUTION_URL FIREBASE_BITRISE_BINARY_DOWNLOAD_URL FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID FIREBASE_APP_DISTRIBUTION_RELEASE_ID ; do
               eval "value=\$$var"
               if [ -z "$value" ] ; then
                 echo "FAIL $var is empty"
@@ -234,6 +234,7 @@ workflows:
               "https://firebaseappdistribution.googleapis.com/app-binary-downloads/projects/TEST_PROJ/apps/TEST_APP/releases/PRIMARYID/binaries/BINID/app.aab?utm_source=firebase-tools&token=FAKETOKEN" \
               "$FIREBASE_BITRISE_BINARY_DOWNLOAD_URL"
             check FIREBASE_APP_DISTRIBUTION_RELEASE_ID "PRIMARYID" "$FIREBASE_APP_DISTRIBUTION_RELEASE_ID"
+            check FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID "PRIMARYID" "$FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID"
             exit $fail
   test-parse-fallback:
     description: |-
@@ -288,4 +289,5 @@ workflows:
               "https://firebaseappdistribution.googleapis.com/app-binary-downloads/projects/TEST_PROJ/apps/TEST_APP/releases/FALLBACKID/binaries/BIN2/app.aab?utm_source=firebase-tools&token=FAKE2" \
               "$FIREBASE_BITRISE_BINARY_DOWNLOAD_URL"
             check FIREBASE_APP_DISTRIBUTION_RELEASE_ID "FALLBACKID" "$FIREBASE_APP_DISTRIBUTION_RELEASE_ID"
+            check FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID "FALLBACKID" "$FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID"
             exit $fail

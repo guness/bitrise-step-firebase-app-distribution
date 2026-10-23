@@ -16,7 +16,7 @@ Move the Bitrise Step orchestration from `step.sh` to Go while preserving the ex
 | Output parsing | Always enables Firebase `--debug`; first parses the final operation JSON, then falls back to labeled success lines | Use `encoding/json` for the operation response and retain the labeled fallback; `is_debug` still controls log display |
 | Exports | Console URL, tester URL, one-hour binary URL, and release ID are sent through `envman` | Export all four under their established environment variable names |
 
-The contract needs a decision before cutover: `step.yml` declares `FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID`, while `step.sh` and the current workflows export and assert `FIREBASE_APP_DISTRIBUTION_RELEASE_ID`. Preserve the latter for existing consumers. Either correct the declaration to that name, or declare both and export both for a compatibility window. Run `stepman audit` after the contract change.
+The release ID mismatch reported in GitHub issue #74 is fixed on `develop`: both `FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID` (the documented output) and `FIREBASE_APP_DISTRIBUTION_RELEASE_ID` (the existing exported name) are now declared, exported, and asserted by the workflows. The Go migration must preserve both names with the same value.
 
 The current script also prints `firebase_token` and the constructed command. The Go implementation should redact token values and credential locations from ordinary logs and errors. Treat the signed binary URL as sensitive because it grants a temporary download; export it without echoing its query token.
 

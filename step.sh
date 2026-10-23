@@ -323,6 +323,7 @@ export_output() {
 export_output FIREBASE_BITRISE_CONSOLE_URL            "${firebase_console_uri}" "firebase console url"
 export_output FIREBASE_BITRISE_APP_DISTRIBUTION_URL   "${testing_uri}"          "firebase app distribution url"
 export_output FIREBASE_BITRISE_BINARY_DOWNLOAD_URL    "${binary_download_uri}"  "firebase binary download url"
+export_output FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID "${release_id}"       "firebase release id"
 export_output FIREBASE_APP_DISTRIBUTION_RELEASE_ID    "${release_id}"           "firebase release id"
 
 echo_done "Success"

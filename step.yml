@@ -155,3 +155,7 @@ outputs:
     opts:
       title: Firebase App Distribution Release ID
       summary: The Firebase App Distribution Release ID of the uploaded build.
+  - FIREBASE_APP_DISTRIBUTION_RELEASE_ID: null
+    opts:
+      title: Firebase App Distribution Release ID (legacy alias)
+      summary: Compatibility alias of FIREBASE_BITRISE_APP_DISTRIBUTION_RELEASE_ID.
